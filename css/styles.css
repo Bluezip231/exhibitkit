@@ -93,6 +93,34 @@ hr {
 
 [hidden] { display: none !important; }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.6rem 1rem;
+  z-index: 100;
+  text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+
+.tight { margin-bottom: 0.25rem; }
+.mb-1 { margin-bottom: 1rem; }
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.btn-link:hover { text-decoration-color: var(--ink); }
+
 /* --------------------------------------------------------------------------
    Layout shell
    -------------------------------------------------------------------------- */
@@ -430,6 +458,12 @@ input[type="checkbox"] {
 .dropzone .dz-title { font-weight: 600; font-size: 1.05rem; margin: 0 0 0.3rem; }
 .dropzone .dz-sub { color: var(--muted); font-size: 0.88rem; margin: 0; }
 
+.dz-alt {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0.6rem 0 0;
+}
+
 /* --------------------------------------------------------------------------
    Notices
    -------------------------------------------------------------------------- */
@@ -573,6 +607,38 @@ input[type="checkbox"] {
 }
 
 .load-more-row { text-align: center; padding: 1rem 0; }
+
+.date-sep {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.date-sep::before, .date-sep::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--rule);
+}
+
+.phrase-redact-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  border: 1px solid var(--seal);
+  border-radius: 4px;
+  background: var(--seal-tint);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.phrase-redact-form .hint { grid-column: 1 / -1; margin: 0; }
 
 /* --------------------------------------------------------------------------
    CSV mapping table

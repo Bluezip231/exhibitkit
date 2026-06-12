@@ -11,7 +11,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v1';
+const VERSION = 'exhibitkit-v2';
 
 const PRECACHE = [
   './',
@@ -25,6 +25,9 @@ const PRECACHE = [
   'js/hash.js',
   'js/pdf.js',
   'js/declaration.js',
+  'js/redact.js',
+  'js/sample.js',
+  'js/pwa.js',
   'js/parsers/detect.js',
   'js/parsers/whatsapp.js',
   'js/parsers/smsxml.js',
@@ -60,7 +63,8 @@ self.addEventListener('fetch', (event) => {
     url.origin === self.location.origin ||
     url.hostname === 'cdnjs.cloudflare.com' ||
     url.hostname === 'fonts.googleapis.com' ||
-    url.hostname === 'fonts.gstatic.com';
+    url.hostname === 'fonts.gstatic.com' ||
+    url.hostname === 'cdn.jsdelivr.net';   // optional extended PDF font
   if (!cacheable) return;
 
   event.respondWith(

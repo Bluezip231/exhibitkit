@@ -14,8 +14,11 @@ import { parseMetaFiles } from './parsers/meta.js';
 import { parseCsv, detectHeaderRow, csvToMessages } from './parsers/csv.js';
 import {
   generateExhibitPdf, generateDeclarationPdf, scanUnsupported, buildFileName,
+  loadExtendedFont,
 } from './pdf.js';
 import { formatLongDate } from './declaration.js';
+import { redactPhrase, redactRange } from './redact.js';
+import { makeSampleFile } from './sample.js';
 
 const CHUNK = 200; // message rows rendered per "Load more"
 
@@ -32,6 +35,8 @@ const state = {
   renderedCount: 0,
   redactingIndex: null,
   batesPrefixTouched: false,
+  lastSepKey: null,       // date-separator tracking across render chunks
+  previewUrl: null,       // blob URL of the last preview, revoked on replace
 };
 
 const $ = (id) => document.getElementById(id);
@@ -86,7 +91,23 @@ function init() {
   $('f-exhibit').addEventListener('input', updateStepIndicator);
   $('f-declarant').addEventListener('input', updateStepIndicator);
 
+  $('sample-btn').addEventListener('click', () => handleFiles([makeSampleFile()]));
+
+  $('redact-phrase-toggle').addEventListener('click', () => {
+    const form = $('phrase-redact-form');
+    form.hidden = !form.hidden;
+    $('redact-phrase-toggle').setAttribute('aria-expanded', String(!form.hidden));
+    if (!form.hidden) $('redact-phrase').focus();
+  });
+  $('redact-phrase-apply').addEventListener('click', applyPhraseRedaction);
+  $('redact-phrase').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); applyPhraseRedaction(); }
+  });
+
+  $('opt-extfont').addEventListener('change', updateCharsetNotice);
+
   $('btn-generate').addEventListener('click', onGenerate);
+  $('btn-preview').addEventListener('click', onPreview);
   $('btn-declaration').addEventListener('click', onDeclarationOnly);
   $('btn-copy-hash').addEventListener('click', onCopyHash);
   $('apply-mapping').addEventListener('click', applyCsvMapping);
@@ -228,6 +249,7 @@ function finishParse() {
   populateSenderFilter();
   revealSteps();
   renderList(true);
+  updateCharsetNotice();
   updateStepIndicator();
 }
 
@@ -534,13 +556,27 @@ function renderList(reset) {
   if (reset) {
     computeFiltered();
     state.renderedCount = 0;
+    state.lastSepKey = null;
     $('message-list').textContent = '';
     exitRedactMode(false);
   }
   const list = $('message-list');
   const frag = document.createDocumentFragment();
   const slice = state.filtered.slice(state.renderedCount, state.renderedCount + CHUNK);
-  for (const idx of slice) frag.appendChild(buildRow(idx));
+  for (const idx of slice) {
+    const m = state.messages[idx];
+    if (m.timestamp) {
+      const key = `${m.timestamp.getFullYear()}-${m.timestamp.getMonth()}-${m.timestamp.getDate()}`;
+      if (key !== state.lastSepKey) {
+        state.lastSepKey = key;
+        const sep = document.createElement('li');
+        sep.className = 'date-sep';
+        sep.textContent = formatLongDate(m.timestamp);
+        frag.appendChild(sep);
+      }
+    }
+    frag.appendChild(buildRow(idx));
+  }
   list.appendChild(frag);
   state.renderedCount += slice.length;
 
@@ -657,6 +693,7 @@ function bulkSelect(on) {
     else state.selection.delete(idx);
   }
   renderList(true);
+  updateCharsetNotice();
 }
 
 function updateSelectionCount() {
@@ -738,14 +775,42 @@ function confirmRedaction(index, li) {
   const length = range.toString().length;
   if (length === 0) return fail('Nothing selected yet — highlight some text first.');
 
-  const current = currentBody(index);
-  const newBody = current.slice(0, start) + '[REDACTED]' + current.slice(start + length);
+  const { body: newBody } = redactRange(currentBody(index), start, length);
   const prev = state.redactions.get(index);
   state.redactions.set(index, { body: newBody, count: (prev ? prev.count : 0) + 1 });
 
   sel.removeAllRanges();
   state.redactingIndex = null;
   replaceRow(index, li);
+}
+
+/** Redact every occurrence of a typed phrase across the selected messages. */
+function applyPhraseRedaction() {
+  const phrase = $('redact-phrase').value;
+  const result = $('redact-phrase-result');
+  if (!phrase) {
+    result.textContent = 'Type the exact text to redact first.';
+    return;
+  }
+  let msgs = 0;
+  let occurrences = 0;
+  for (const idx of state.selection) {
+    const { body, count } = redactPhrase(currentBody(idx), phrase);
+    if (count > 0) {
+      const prev = state.redactions.get(idx);
+      state.redactions.set(idx, { body, count: (prev ? prev.count : 0) + count });
+      msgs++;
+      occurrences += count;
+    }
+  }
+  if (occurrences > 0) {
+    renderList(true);
+    updateCharsetNotice();
+    result.textContent = `Redacted ${occurrences} occurrence${occurrences === 1 ? '' : 's'} ` +
+      `across ${msgs} message${msgs === 1 ? '' : 's'}. Each message has an Undo button.`;
+  } else {
+    result.textContent = 'No matches in the selected messages. The match is exact and case-sensitive.';
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -875,73 +940,155 @@ function exhibitContext(info, exportMessages) {
   };
 }
 
-async function onGenerate() {
+/**
+ * Charset notice: jsPDF's standard fonts cover WinAnsi only. Counts are
+ * recomputed when the selection, redactions or the extended-font checkbox
+ * change. The extended-font opt-in only appears when it would help.
+ */
+function updateCharsetNotice() {
+  const msgs = [...state.selection].map((i) => ({
+    sender: senderLabel(state.messages[i]),
+    body: currentBody(i),
+  }));
+  const basic = scanUnsupported(msgs, false);
+  const notice = $('charset-notice');
+  if (basic === 0) {
+    notice.hidden = true;
+    return;
+  }
+  notice.hidden = false;
+  const n = basic.toLocaleString('en-US');
+  if ($('opt-extfont').checked) {
+    const remaining = scanUnsupported(msgs, true);
+    $('charset-text').textContent = remaining > 0
+      ? `${n} selected message${basic === 1 ? '' : 's'} contain characters outside the standard PDF fonts. ` +
+        `With the extended font embedded, ${remaining.toLocaleString('en-US')} will still contain placeholders ` +
+        '(emoji or scripts the PDF engine cannot lay out, such as Arabic, Hebrew or CJK).'
+      : `${n} selected message${basic === 1 ? '' : 's'} contain extended characters — all of them will print natively with the embedded font.`;
+  } else {
+    $('charset-text').textContent =
+      `${n} selected message${basic === 1 ? ' contains' : 's contain'} characters (such as emoji or non-Latin script) ` +
+      'that cannot be embedded in the PDF’s standard fonts. They will appear as placeholders like [emoji] or ' +
+      '[non-Latin text] — nothing is silently dropped.';
+  }
+}
+
+function setBusy(busy) {
+  for (const id of ['btn-generate', 'btn-preview', 'btn-declaration']) {
+    $(id).disabled = busy;
+  }
+}
+
+/** Shared pipeline for Generate and Preview. Returns a jsPDF doc or null. */
+async function buildExhibitDoc() {
   clearGenError();
   const info = validateCaseInfo();
-  if (!info) return;
+  if (!info) return null;
   if (state.selection.size === 0) {
-    return showGenError('No messages are selected. Include at least one message in Step 2.');
+    showGenError('No messages are selected. Include at least one message in Step 2.');
+    return null;
   }
 
   const exportMessages = buildExportMessages(info);
+  updateCharsetNotice();
 
-  // Charset notice (jsPDF standard fonts cannot render emoji / non-Latin text)
-  const affected = scanUnsupported(exportMessages);
-  const notice = $('charset-notice');
-  if (affected > 0) {
-    notice.textContent = `${affected.toLocaleString('en-US')} message${affected === 1 ? ' contains' : 's contain'} ` +
-      'characters (such as emoji or non-Latin script) that cannot be embedded in the PDF’s standard fonts. ' +
-      'They will appear as placeholders like [emoji] or [non-Latin text] — nothing is silently dropped.';
-    notice.hidden = false;
-  } else {
-    notice.hidden = true;
-  }
-
-  const btn = $('btn-generate');
-  btn.disabled = true;
   $('progress-wrap').hidden = false;
   const progress = $('gen-progress');
   const label = $('progress-label');
   progress.value = 0;
-  label.textContent = 'Preparing pages…';
 
+  const extendedFontB64 = await maybeLoadExtendedFont(label);
+
+  label.textContent = 'Preparing pages…';
   try {
     const doc = await generateExhibitPdf({
       ...exhibitContext(info, exportMessages),
+      extendedFontB64,
       onProgress: (done, total) => {
         progress.max = total;
         progress.value = done;
         label.textContent = `Rendering messages: ${done.toLocaleString('en-US')} of ${total.toLocaleString('en-US')}`;
       },
     });
-    label.textContent = 'Saving PDF…';
-    doc.save(buildFileName(info));
-    label.textContent = 'Done. Your download should have started.';
+    return { doc, info, label };
   } catch (err) {
     showGenError(`PDF generation failed: ${err.message}`);
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => { $('progress-wrap').hidden = true; }, 4000);
+    return null;
   }
+}
+
+/** Download the extended font when opted in; fail soft to placeholders. */
+async function maybeLoadExtendedFont(label) {
+  if ($('charset-notice').hidden || !$('opt-extfont').checked) return null;
+  label.textContent = 'Downloading extended font (about 740 KB, cached after the first time)…';
+  try {
+    return await loadExtendedFont();
+  } catch (err) {
+    $('opt-extfont').checked = false;
+    updateCharsetNotice();
+    showGenError(`The extended font could not be downloaded (${err.message}). ` +
+      'Generating with placeholders instead.');
+    return null;
+  }
+}
+
+function endGeneration() {
+  setBusy(false);
+  setTimeout(() => { $('progress-wrap').hidden = true; }, 4000);
   updateStepIndicator();
 }
 
-function onDeclarationOnly() {
+async function onGenerate() {
+  setBusy(true);
+  $('preview-fallback').hidden = true;
+  const res = await buildExhibitDoc();
+  if (res) {
+    res.label.textContent = 'Saving PDF…';
+    res.doc.save(buildFileName(res.info));
+    res.label.textContent = 'Done. Your download should have started.';
+  }
+  endGeneration();
+}
+
+async function onPreview() {
+  setBusy(true);
+  const res = await buildExhibitDoc();
+  if (res) {
+    if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+    const url = res.doc.output('bloburl');
+    state.previewUrl = url;
+    const win = window.open(url, '_blank');
+    const fallback = $('preview-fallback');
+    fallback.href = url;
+    fallback.hidden = !!win; // popup blocked → offer a plain link instead
+    res.label.textContent = win
+      ? 'Preview opened in a new tab. Nothing was downloaded or uploaded.'
+      : 'Preview ready — your browser blocked the new tab, use the link below.';
+  }
+  endGeneration();
+}
+
+async function onDeclarationOnly() {
   clearGenError();
   const info = validateCaseInfo();
   if (!info) return;
+  setBusy(true);
   try {
     const ctx = exhibitContext(info, []);
+    const extendedFontB64 = await maybeLoadExtendedFont($('progress-label'));
     const doc = generateDeclarationPdf({
       caseInfo: info,
       sources: ctx.sources,
       messageCount: state.selection.size,
       redactedCount: ctx.redactedCount,
       exportDate: ctx.exportDate,
+      extendedFontB64,
     });
     doc.save(buildFileName(info, new Date(), '_declaration'));
   } catch (err) {
     showGenError(`PDF generation failed: ${err.message}`);
+  } finally {
+    setBusy(false);
   }
 }
 

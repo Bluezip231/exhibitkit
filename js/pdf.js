@@ -8,7 +8,14 @@
  * emoji and non-Latin scripts cannot be embedded. sanitizeForPdf() replaces
  * such runs with explicit placeholders ([emoji], [non-Latin text]) and the
  * app warns the user before generation — characters are never silently
- * dropped. (Embedding a full Unicode font is a Phase 4 stretch goal.)
+ * dropped.
+ *
+ * Optional extended font: the user can opt in to downloading DejaVu Sans
+ * (~740 KB, public-domain-style license) which is then embedded so extended
+ * Latin, Greek and Cyrillic print natively. Emoji, CJK and right-to-left
+ * scripts stay as placeholders even then — jsPDF has no color-emoji support
+ * and no bidi/shaping engine, and printing RTL text in the wrong order would
+ * be worse than an honest placeholder in an evidence document.
  */
 
 import { buildDeclaration } from './declaration.js';
@@ -32,8 +39,10 @@ const SEAL = [140, 29, 24];
 const RULE = [201, 205, 211];
 const MUTED = [91, 100, 112];
 
+const EXT_FONT_NAME = 'DejaVuSans';
+
 // ---------------------------------------------------------------------------
-// WinAnsi sanitization
+// Character support: WinAnsi base set + optional extended (DejaVu) set
 // ---------------------------------------------------------------------------
 
 // cp1252 code points beyond Latin-1: smart quotes, dashes, €, ™, etc.
@@ -42,6 +51,27 @@ const CP1252_EXTRA = new Set([
   0x0160, 0x2039, 0x0152, 0x017D, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022,
   0x2013, 0x2014, 0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x017E, 0x0178,
 ]);
+
+// Blocks DejaVu Sans covers AND that render correctly left-to-right without
+// a shaping engine. RTL scripts (Hebrew, Arabic) and CJK are deliberately
+// excluded: jsPDF cannot shape or reorder them, and printing them wrong in
+// an evidence document is worse than an explicit placeholder.
+const EXT_RANGES = [
+  [0x0100, 0x024F], // Latin Extended-A/B
+  [0x0250, 0x02FF], // IPA + spacing modifier letters
+  [0x0300, 0x036F], // combining diacritical marks
+  [0x0370, 0x03FF], // Greek and Coptic
+  [0x0400, 0x052F], // Cyrillic + supplement
+  [0x1E00, 0x1EFF], // Latin Extended Additional (Vietnamese etc.)
+  [0x1F00, 0x1FFF], // Greek Extended
+  [0x2070, 0x209F], // superscripts/subscripts
+  [0x20A0, 0x20BF], // currency symbols
+  [0x2100, 0x214F], // letterlike symbols
+  [0x2150, 0x218F], // number forms
+  [0x2190, 0x21FF], // arrows
+  [0x2200, 0x22FF], // mathematical operators
+  [0x25A0, 0x25FF], // geometric shapes
+];
 
 // Invisible formatting characters: dropped (not placeholdered) because they
 // carry no visible content. Documented in the README.
@@ -52,9 +82,16 @@ const ZERO_WIDTH = new Set([
 
 const EMOJI_RE = /\p{Extended_Pictographic}/u;
 
-function isSupported(cp) {
+function isWinAnsi(cp) {
   return cp === 0x0A || (cp >= 0x20 && cp <= 0x7E) ||
     (cp >= 0xA0 && cp <= 0xFF) || CP1252_EXTRA.has(cp);
+}
+
+function inExtRanges(cp) {
+  for (const [lo, hi] of EXT_RANGES) {
+    if (cp >= lo && cp <= hi) return true;
+  }
+  return false;
 }
 
 function isEmojiCp(cp) {
@@ -66,16 +103,20 @@ function isEmojiCp(cp) {
 }
 
 /**
- * Replace characters jsPDF cannot embed with explicit placeholders.
- * Consecutive unsupported characters collapse into one placeholder.
+ * Replace characters the active fonts cannot embed with explicit
+ * placeholders. Consecutive unsupported characters collapse into one.
+ * @param {string} input
+ * @param {boolean} extended true when the DejaVu extended font is embedded
  * @returns {{text: string, hadEmoji: boolean, hadOther: boolean}}
  */
-export function sanitizeForPdf(input) {
+export function sanitizeForPdf(input, extended = false) {
   const text = String(input ?? '');
   let out = '';
   let hadEmoji = false;
   let hadOther = false;
   let run = [];        // pending unsupported code points
+
+  const supported = (cp) => isWinAnsi(cp) || (extended && inExtRanges(cp));
 
   const flushRun = () => {
     if (run.length === 0) return;
@@ -97,7 +138,7 @@ export function sanitizeForPdf(input) {
     if (ch === '\t') { flushRun(); out += '  '; continue; }
     if (ch === '\r') { continue; }
     if (cp < 0x20 && cp !== 0x0A) { continue; }   // other control chars
-    if (isSupported(cp)) {
+    if (supported(cp)) {
       flushRun();
       out += ch;
     } else {
@@ -110,13 +151,37 @@ export function sanitizeForPdf(input) {
 }
 
 /** Count messages whose printable text would gain placeholders. */
-export function scanUnsupported(messages) {
+export function scanUnsupported(messages, extended = false) {
   let count = 0;
   for (const m of messages) {
-    const r = sanitizeForPdf(`${m.sender}\n${m.body}`);
+    const r = sanitizeForPdf(`${m.sender}\n${m.body}`, extended);
     if (r.hadEmoji || r.hadOther) count++;
   }
   return count;
+}
+
+// ---------------------------------------------------------------------------
+// Extended font loading (opt-in, fetched once, ~740 KB)
+// ---------------------------------------------------------------------------
+
+export const EXTENDED_FONT_URL =
+  'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf';
+
+let extFontB64Cache = null;
+
+/** Fetch DejaVu Sans and return it base64-encoded (cached per session). */
+export async function loadExtendedFont() {
+  if (extFontB64Cache) return extFontB64Cache;
+  const res = await fetch(EXTENDED_FONT_URL);
+  if (!res.ok) throw new Error(`font download failed (HTTP ${res.status})`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  extFontB64Cache = btoa(bin);
+  return extFontB64Cache;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,29 +224,31 @@ const yieldToUi = () => new Promise((r) => setTimeout(r, 0));
  *   description: string,            // cover-page description block
  *   redactedCount: number,
  *   exportDate: Date|null,
+ *   extendedFontB64?: string|null,  // base64 DejaVu Sans TTF, when opted in
  *   onProgress?: (done: number, total: number) => void
  * }} opts
  * @returns {Promise<object>} the jsPDF document
  */
 export async function generateExhibitPdf(opts) {
   const { messages, caseInfo, sources, description,
-    redactedCount = 0, exportDate = null, onProgress } = opts;
+    redactedCount = 0, exportDate = null, extendedFontB64 = null, onProgress } = opts;
 
-  const doc = newDoc();
+  const doc = newDoc(extendedFontB64);
+  const ctx = { caseInfo, ext: !!extendedFontB64 };
   const genDate = new Date();
 
-  drawCover(doc, { caseInfo, sources, description, genDate });
+  drawCover(doc, ctx, { sources, description, genDate });
 
   // Message pages
   doc.addPage();
-  drawPageHeader(doc, caseInfo);
+  drawPageHeader(doc, ctx);
   let y = CONTENT_TOP;
   for (let i = 0; i < messages.length; i++) {
     if (i > 0 && i % 200 === 0) {
       if (onProgress) onProgress(i, messages.length);
       await yieldToUi();
     }
-    y = drawMessage(doc, messages[i], y, caseInfo);
+    y = drawMessage(doc, ctx, messages[i], y);
   }
   if (onProgress) onProgress(messages.length, messages.length);
 
@@ -196,8 +263,8 @@ export async function generateExhibitPdf(opts) {
     exportDate,
   });
   doc.addPage();
-  drawPageHeader(doc, caseInfo);
-  drawDeclaration(doc, decl, caseInfo);
+  drawPageHeader(doc, ctx);
+  drawDeclaration(doc, ctx, decl);
 
   stampFooters(doc, sources, genDate);
   return doc;
@@ -205,8 +272,10 @@ export async function generateExhibitPdf(opts) {
 
 /** Generate a standalone declaration (no exhibit pages). */
 export function generateDeclarationPdf(opts) {
-  const { caseInfo, sources, messageCount, redactedCount = 0, exportDate = null } = opts;
-  const doc = newDoc();
+  const { caseInfo, sources, messageCount, redactedCount = 0,
+    exportDate = null, extendedFontB64 = null } = opts;
+  const doc = newDoc(extendedFontB64);
+  const ctx = { caseInfo, ext: !!extendedFontB64 };
   const decl = buildDeclaration({
     caseInfo,
     messageCount,
@@ -215,49 +284,63 @@ export function generateDeclarationPdf(opts) {
     redactedCount,
     exportDate,
   });
-  drawPageHeader(doc, caseInfo);
-  drawDeclaration(doc, decl, caseInfo);
+  drawPageHeader(doc, ctx);
+  drawDeclaration(doc, ctx, decl);
   stampFooters(doc, sources, new Date());
   return doc;
 }
 
-function newDoc() {
+function newDoc(extendedFontB64) {
   const JsPdf = window.jspdf && window.jspdf.jsPDF;
   if (!JsPdf) {
     throw new Error('The PDF library failed to load. Check your connection and reload the page.');
   }
-  return new JsPdf({ unit: 'pt', format: 'letter', compress: true });
+  const doc = new JsPdf({ unit: 'pt', format: 'letter', compress: true });
+  if (extendedFontB64) {
+    doc.addFileToVFS('DejaVuSans.ttf', extendedFontB64);
+    doc.addFont('DejaVuSans.ttf', EXT_FONT_NAME, 'normal');
+  }
+  return doc;
+}
+
+/**
+ * Set the content font. With the extended font embedded, all content-bearing
+ * text uses DejaVu Sans (single weight — DejaVu bold would double the
+ * download); otherwise Helvetica with the requested style.
+ */
+function setContentFont(doc, ctx, style = 'normal', size = 10) {
+  if (ctx.ext) doc.setFont(EXT_FONT_NAME, 'normal');
+  else doc.setFont('helvetica', style);
+  doc.setFontSize(size);
 }
 
 // ---------------------------------------------------------------------------
 // Cover page
 // ---------------------------------------------------------------------------
 
-function drawCover(doc, ctx) {
-  const { caseInfo, sources, description, genDate } = ctx;
+function drawCover(doc, ctx, extra) {
+  const { caseInfo } = ctx;
+  const { sources, description, genDate } = extra;
   setInk(doc);
   let y = 110;
 
   if (caseInfo.courtName) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    const lines = doc.splitTextToSize(sanitizeForPdf(caseInfo.courtName).text, CONTENT_W);
+    setContentFont(doc, ctx, 'normal', 12);
+    const lines = doc.splitTextToSize(sanitizeForPdf(caseInfo.courtName, ctx.ext).text, CONTENT_W);
     doc.text(lines, PAGE_W / 2, y, { align: 'center' });
     y += lines.length * 15 + 14;
   }
 
   if (caseInfo.caseCaption) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    const lines = doc.splitTextToSize(sanitizeForPdf(caseInfo.caseCaption).text, CONTENT_W);
+    setContentFont(doc, ctx, 'bold', 14);
+    const lines = doc.splitTextToSize(sanitizeForPdf(caseInfo.caseCaption, ctx.ext).text, CONTENT_W);
     doc.text(lines, PAGE_W / 2, y, { align: 'center' });
     y += lines.length * 18 + 6;
   }
 
   if (caseInfo.caseNumber) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.text(`Case No. ${sanitizeForPdf(caseInfo.caseNumber).text}`, PAGE_W / 2, y, { align: 'center' });
+    setContentFont(doc, ctx, 'normal', 11);
+    doc.text(`Case No. ${sanitizeForPdf(caseInfo.caseNumber, ctx.ext).text}`, PAGE_W / 2, y, { align: 'center' });
     y += 20;
   }
 
@@ -266,39 +349,37 @@ function drawCover(doc, ctx) {
   doc.setDrawColor(...INK);
   doc.setLineWidth(1);
   doc.line(PAGE_W / 2 - 110, labelY - 34, PAGE_W / 2 + 110, labelY - 34);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(30);
-  doc.text(sanitizeForPdf(caseInfo.exhibitLabel || 'Exhibit').text.toUpperCase(),
+  setContentFont(doc, ctx, 'bold', 30);
+  doc.text(sanitizeForPdf(caseInfo.exhibitLabel || 'Exhibit', ctx.ext).text.toUpperCase(),
     PAGE_W / 2, labelY, { align: 'center' });
   doc.line(PAGE_W / 2 - 110, labelY + 14, PAGE_W / 2 + 110, labelY + 14);
 
   // Description block
   if (description) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    const lines = doc.splitTextToSize(sanitizeForPdf(description).text, CONTENT_W - 60);
+    setContentFont(doc, ctx, 'normal', 11);
+    const lines = doc.splitTextToSize(sanitizeForPdf(description, ctx.ext).text, CONTENT_W - 60);
     doc.text(lines, PAGE_W / 2, labelY + 50, { align: 'center' });
   }
 
-  drawSealBox(doc, sources, genDate);
+  drawSealBox(doc, ctx, sources, genDate);
 }
 
 /** The Evidence Seal block, printed on the cover. */
-function drawSealBox(doc, sources, genDate) {
+function drawSealBox(doc, ctx, sources, genDate) {
   const boxW = 460;
   const boxX = (PAGE_W - boxW) / 2;
   const pad = 14;
   const lh = 12;
 
   // Assemble lines first so the box height is exact.
-  const rows = [];   // {text, font, style, size, color}
+  const rows = [];   // {text, font, style, size, color} | {gap}
   const mono = (text, color = INK) => rows.push({ text, font: 'courier', style: 'normal', size: 8.5, color });
   const monoBold = (text, color = SEAL) => rows.push({ text, font: 'courier', style: 'bold', size: 8.5, color });
 
   monoBold('EVIDENCE SEAL — SOURCE FILE INTEGRITY');
   rows.push({ gap: 6 });
   for (const s of sources) {
-    mono(`File:    ${fitMono(doc, sanitizeForPdf(s.name).text, boxW - pad * 2 - 50)}`);
+    mono(`File:    ${fitMono(doc, sanitizeForPdf(s.name, ctx.ext).text, boxW - pad * 2 - 50)}`);
     mono(`Size:    ${s.sizeBytes.toLocaleString('en-US')} bytes`);
     mono(`SHA-256: ${s.hashHex.slice(0, 32)}`, SEAL);
     mono(`         ${s.hashHex.slice(32)}`, SEAL);
@@ -368,46 +449,44 @@ function s2(d) {
 // Message pages
 // ---------------------------------------------------------------------------
 
-function drawPageHeader(doc, caseInfo) {
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+function drawPageHeader(doc, ctx) {
+  const { caseInfo } = ctx;
+  setContentFont(doc, ctx, 'bold', 9);
   setInk(doc);
-  doc.text(sanitizeForPdf(caseInfo.exhibitLabel || 'Exhibit').text, MARGIN, 48);
+  doc.text(sanitizeForPdf(caseInfo.exhibitLabel || 'Exhibit', ctx.ext).text, MARGIN, 48);
   if (caseInfo.caseNumber) {
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Case No. ${sanitizeForPdf(caseInfo.caseNumber).text}`, PAGE_W - MARGIN, 48, { align: 'right' });
+    setContentFont(doc, ctx, 'normal', 9);
+    doc.text(`Case No. ${sanitizeForPdf(caseInfo.caseNumber, ctx.ext).text}`, PAGE_W - MARGIN, 48, { align: 'right' });
   }
   doc.setDrawColor(...RULE);
   doc.setLineWidth(0.5);
   doc.line(MARGIN, 56, PAGE_W - MARGIN, 56);
 }
 
-function newMessagePage(doc, caseInfo) {
+function newMessagePage(doc, ctx) {
   doc.addPage();
-  drawPageHeader(doc, caseInfo);
+  drawPageHeader(doc, ctx);
   return CONTENT_TOP;
 }
 
-function drawMessage(doc, m, y, caseInfo) {
-  const body = sanitizeForPdf(m.body).text;
+function drawMessage(doc, ctx, m, y) {
+  const body = sanitizeForPdf(m.body, ctx.ext).text;
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
+  setContentFont(doc, ctx, 'normal', 10);
   const bodyLines = body !== '' ? doc.splitTextToSize(body, CONTENT_W) : [];
 
   const senderText = m.isSystem
     ? '(system message)'
-    : sanitizeForPdf(m.sender || 'Unknown').text;
+    : sanitizeForPdf(m.sender || 'Unknown', ctx.ext).text;
   const dirSuffix = m.direction ? ` (${m.direction})` : '';
-  const metaText = `${m.rawTimestamp ? ' — ' + sanitizeForPdf(m.rawTimestamp).text : ''}${dirSuffix}`;
+  const metaText = `${m.rawTimestamp ? ' — ' + sanitizeForPdf(m.rawTimestamp, ctx.ext).text : ''}${dirSuffix}`;
 
   doc.setFont('courier', 'normal');
   doc.setFontSize(8);
   const batesW = m.bates ? doc.getTextWidth(m.bates) : 0;
-  doc.setFont('helvetica', m.isSystem ? 'italic' : 'bold');
-  doc.setFontSize(10);
+  setContentFont(doc, ctx, m.isSystem ? 'italic' : 'bold', 10);
   const senderW = doc.getTextWidth(senderText);
-  doc.setFont('helvetica', 'normal');
+  setContentFont(doc, ctx, 'normal', 10);
   const metaW = doc.getTextWidth(metaText);
   const metaOwnLine = senderW + metaW > CONTENT_W - batesW - 12;
   const headLines = metaOwnLine && metaText ? 2 : 1;
@@ -416,22 +495,20 @@ function drawMessage(doc, m, y, caseInfo) {
   const blockLines = headLines + bodyLines.length;
   const neededLines = Math.min(blockLines, 3);
   if (y + neededLines * LINE_H > CONTENT_BOTTOM) {
-    y = newMessagePage(doc, caseInfo);
+    y = newMessagePage(doc, ctx);
   }
 
   // Line 1: bold sender + regular timestamp, Bates number right-aligned.
-  doc.setFont('helvetica', m.isSystem ? 'italic' : 'bold');
-  doc.setFontSize(10);
+  setContentFont(doc, ctx, m.isSystem ? 'italic' : 'bold', 10);
   setInk(doc);
   doc.text(senderText, MARGIN, y);
-  doc.setFont('helvetica', 'normal');
+  setContentFont(doc, ctx, 'normal', 10);
   doc.setTextColor(...MUTED);
   if (metaOwnLine && metaText) {
     if (m.bates) drawBates(doc, m.bates, y);
     y += LINE_H;
-    if (y > CONTENT_BOTTOM) y = newMessagePage(doc, caseInfo);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    if (y > CONTENT_BOTTOM) y = newMessagePage(doc, ctx);
+    setContentFont(doc, ctx, 'normal', 10);
     doc.setTextColor(...MUTED);
     doc.text(metaText.replace(/^ — /, ''), MARGIN, y);
   } else {
@@ -442,13 +519,11 @@ function drawMessage(doc, m, y, caseInfo) {
   y += LINE_H;
 
   // Body lines
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
+  setContentFont(doc, ctx, 'normal', 10);
   for (const line of bodyLines) {
     if (y > CONTENT_BOTTOM) {
-      y = newMessagePage(doc, caseInfo);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
+      y = newMessagePage(doc, ctx);
+      setContentFont(doc, ctx, 'normal', 10);
       setInk(doc);
     }
     doc.text(line, MARGIN, y);
@@ -470,40 +545,35 @@ function drawBates(doc, bates, y) {
 // Declaration page
 // ---------------------------------------------------------------------------
 
-function drawDeclaration(doc, decl, caseInfo) {
+function drawDeclaration(doc, ctx, decl) {
   const PARA_LH = 15;
   let y = CONTENT_TOP + 14;
 
   const ensure = (need) => {
     if (y + need > CONTENT_BOTTOM) {
       doc.addPage();
-      drawPageHeader(doc, caseInfo);
+      drawPageHeader(doc, ctx);
       y = CONTENT_TOP + 14;
     }
   };
 
   setInk(doc);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
+  setContentFont(doc, ctx, 'bold', 13);
   const titleLines = doc.splitTextToSize(decl.title, CONTENT_W);
   doc.text(titleLines, PAGE_W / 2, y, { align: 'center' });
   y += titleLines.length * 17 + 18;
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  const introLines = doc.splitTextToSize(sanitizeForPdf(decl.intro).text, CONTENT_W);
+  setContentFont(doc, ctx, 'normal', 11);
+  const introLines = doc.splitTextToSize(sanitizeForPdf(decl.intro, ctx.ext).text, CONTENT_W);
   ensure(introLines.length * PARA_LH);
   doc.text(introLines, MARGIN, y);
   y += introLines.length * PARA_LH + 10;
 
   decl.paragraphs.forEach((para, i) => {
-    // Long hash paragraphs wrap anywhere thanks to courier-free helvetica,
-    // but jsPDF only breaks on spaces — give hashes breakable spacing.
-    const text = sanitizeForPdf(para).text;
-    const lines = doc.splitTextToSize(text, CONTENT_W - 26, { fontSize: 11 });
+    const text = sanitizeForPdf(para, ctx.ext).text;
+    setContentFont(doc, ctx, 'normal', 11);
+    const lines = doc.splitTextToSize(text, CONTENT_W - 26);
     ensure(Math.min(lines.length, 2) * PARA_LH);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
     doc.text(`${i + 1}.`, MARGIN, y);
     for (const line of lines) {
       ensure(PARA_LH);
@@ -523,13 +593,12 @@ function drawDeclaration(doc, decl, caseInfo) {
   y += 26;
   for (const line of decl.signature) {
     ensure(PARA_LH);
-    doc.text(sanitizeForPdf(line).text, MARGIN, y);
+    doc.text(sanitizeForPdf(line, ctx.ext).text, MARGIN, y);
     y += PARA_LH + 12;
   }
 
   y += 8;
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
+  setContentFont(doc, ctx, 'italic', 8);
   doc.setTextColor(...MUTED);
   const footLines = doc.splitTextToSize(decl.footnote, CONTENT_W);
   ensure(footLines.length * 10);

@@ -9,8 +9,14 @@ import { parseSmsXml } from '../js/parsers/smsxml.js';
 import { parseMetaFiles, fixMojibake } from '../js/parsers/meta.js';
 import { parseCsv, detectHeaderRow, csvToMessages } from '../js/parsers/csv.js';
 import { sha256Hex, cryptoAvailable } from '../js/hash.js';
-import { sanitizeForPdf, scanUnsupported, buildFileName, generateExhibitPdf } from '../js/pdf.js';
+import {
+  sanitizeForPdf, scanUnsupported, buildFileName, generateExhibitPdf,
+  loadExtendedFont,
+} from '../js/pdf.js';
 import { buildDeclaration } from '../js/declaration.js';
+import { redactPhrase, redactRange } from '../js/redact.js';
+import { makeSampleFile } from '../js/sample.js';
+import { parseWhatsApp as parseWhatsAppSample } from '../js/parsers/whatsapp.js';
 import {
   WHATSAPP_IOS, WHATSAPP_ANDROID, SMS_XML, META_JSON_1, META_JSON_2,
   CSV_TEXT, makeSyntheticMessages,
@@ -230,6 +236,40 @@ test('sanitize: invisible direction marks are dropped, never placeholdered', () 
   assertEqual(sanitizeForPdf('\u200e<Media omitted>').text, '<Media omitted>');
 });
 
+test('sanitize: extended font mode passes Cyrillic/Greek, still placeholders emoji and CJK', () => {
+  assertEqual(sanitizeForPdf('Привет, как дела?', true).text, 'Привет, как дела?');
+  assertEqual(sanitizeForPdf('Привет', false).text, '[non-Latin text]');
+  assertEqual(sanitizeForPdf('Καλημέρα', true).text, 'Καλημέρα');
+  assertEqual(sanitizeForPdf('日本語', true).text, '[non-Latin text]', 'CJK still placeholder');
+  assertEqual(sanitizeForPdf('שלום', true).text, '[non-Latin text]', 'RTL still placeholder (no bidi engine)');
+  assertEqual(sanitizeForPdf('ok \u{1F600}', true).text, 'ok [emoji]', 'emoji still placeholder');
+});
+
+test('redact: phrase replaced everywhere with counts', () => {
+  const r = redactPhrase('call 555-1234 or 555-1234 now', '555-1234');
+  assertEqual(r.body, 'call [REDACTED] or [REDACTED] now');
+  assertEqual(r.count, 2);
+  assertEqual(redactPhrase('nothing here', 'xyz').count, 0);
+  assertEqual(redactPhrase('text', '').count, 0, 'empty phrase is a no-op');
+});
+
+test('redact: range splice', () => {
+  const r = redactRange('account 12345 end', 8, 5);
+  assertEqual(r.body, 'account [REDACTED] end');
+  assertEqual(r.count, 1);
+  assertEqual(redactRange('abc', 99, 5).count, 0, 'out-of-range is a no-op');
+});
+
+test('sample chat parses through the normal WhatsApp pipeline', async () => {
+  const file = makeSampleFile();
+  const text = await file.text();
+  const { messages, variant } = parseWhatsAppSample(text);
+  assertEqual(variant, 'ios');
+  assert(messages.length >= 18, `expected a real conversation, got ${messages.length} messages`);
+  assert(messages[0].isSystem, 'starts with the encryption notice');
+  assert(messages.some((m) => m.body.includes('\n')), 'contains a multi-line message');
+});
+
 test('scanUnsupported counts affected messages', () => {
   const count = scanUnsupported([
     { sender: 'A', body: 'plain' },
@@ -304,6 +344,29 @@ Promise.all(pending).then(() => {
   const summary = document.getElementById('summary');
   summary.textContent = `${passed} / ${results.length} tests passed`;
   summary.style.color = passed === results.length ? 'var(--verify-green)' : 'var(--seal)';
+});
+
+document.getElementById('extfont-btn').addEventListener('click', async () => {
+  const label = document.getElementById('extfont-label');
+  label.textContent = 'Downloading DejaVu Sans (~740 KB)…';
+  try {
+    const extendedFontB64 = await loadExtendedFont();
+    label.textContent = 'Generating…';
+    const doc = await generateExhibitPdf({
+      messages: [
+        { sender: 'Наталья Иванова', rawTimestamp: 'Jun 12, 2026, 9:46 AM', body: 'Привет! Ты придёшь в субботу? Καλημέρα. Łódź, Việt Nam.', direction: null, isSystem: false, bates: 'EX-U-0001' },
+        { sender: 'Isaiah', rawTimestamp: 'Jun 12, 2026, 9:47 AM', body: 'Mixed: café, 日本語 stays a placeholder, emoji too \u{1F600}', direction: null, isSystem: false, bates: 'EX-U-0002' },
+      ],
+      caseInfo: { exhibitLabel: 'Exhibit U', caseCaption: 'Unicode v. WinAnsi', declarantName: 'Test Runner' },
+      sources: [{ name: 'unicode-test.txt', sizeBytes: 123, hashHex: 'cd'.repeat(32), hashedAt: new Date() }],
+      description: 'Extended-font rendering check — open the PDF and confirm the Cyrillic and Greek lines are readable.',
+      redactedCount: 0, exportDate: null, extendedFontB64,
+    });
+    doc.save('extended-font-test.pdf');
+    label.textContent = 'Done — check extended-font-test.pdf: Cyrillic/Greek should be real text, CJK/emoji placeholders.';
+  } catch (err) {
+    label.textContent = `Failed: ${err.message}`;
+  }
 });
 
 document.getElementById('perf-btn').addEventListener('click', async () => {

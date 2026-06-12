@@ -11,7 +11,14 @@ tamper-evidence features:
 - **sequential Bates numbering** per message,
 - an auto-generated **declaration of authenticity** template page,
 - **true redaction** — redacted text is removed before the PDF exists, never
-  overlaid.
+  overlaid. Redact a selection inside one message, or a typed phrase (an
+  account number, an address) across every selected message at once,
+- a **preview** mode (opens the exhibit in a new tab without downloading),
+- an optional **extended font** (DejaVu Sans, opt-in ~740 KB download) so
+  accented, Greek and Cyrillic text prints natively instead of as
+  placeholders,
+- a built-in **fictional sample chat** so anyone can try the full flow
+  before exporting anything real.
 
 **Core promise: your messages never leave your device.** There is no backend, no
 database, no upload endpoint, no account system, and no analytics on app pages.
@@ -65,8 +72,14 @@ everything (a `beforeunload` warning guards against accidents).
 ## Security & privacy notes
 
 - **No network egress of user data.** The only requests the site makes are for
-  its own static assets, jsPDF from cdnjs, and Google Fonts. Verify with the
-  browser's Network tab through a full session.
+  its own static assets, jsPDF from cdnjs, Google Fonts, and (only when the
+  user opts in) the DejaVu font from jsDelivr. Verify with the browser's
+  Network tab through a full session.
+- **Enforced by a strict Content-Security-Policy** (`_headers`, served by
+  Netlify): `connect-src` is limited to the site itself and the static asset
+  hosts, `form-action 'none'`, no inline scripts. The browser refuses any
+  other network destination, so even a hidden bug could not transmit message
+  content — there is nowhere on the allowlist to send it.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify
@@ -80,13 +93,23 @@ everything (a `beforeunload` warning guards against accidents).
   placeholders (`[emoji]`, `[non-Latin text]`) and the user is warned before
   generation. Nothing is silently dropped.
 
-### Known limitation: Unicode in PDFs
+### Unicode in PDFs
 
-jsPDF's built-in fonts cover WinAnsi (cp1252) only. Embedding a full Unicode
-font (e.g. Noto Sans) would render emoji/CJK natively but adds multiple
-megabytes to the page load; it's a Phase 4 stretch goal. The current behavior
-(explicit placeholders + a pre-generation notice) was chosen so output is
-honest rather than silently lossy.
+jsPDF's built-in fonts cover WinAnsi (cp1252) only. By default, unsupported
+characters become explicit placeholders (`[emoji]`, `[non-Latin text]`) with
+a pre-generation notice — honest rather than silently lossy.
+
+When the notice appears, the user can opt in to embedding **DejaVu Sans**
+(fetched once from jsDelivr, ~740 KB, cached by the service worker). That
+extends native rendering to extended Latin (Polish, Turkish, Vietnamese…),
+Greek and Cyrillic. Three things deliberately stay as placeholders even
+then:
+
+- **Emoji** — PDF standard fonts have no color emoji.
+- **RTL scripts (Arabic, Hebrew)** — jsPDF has no bidi or shaping engine;
+  printing them in the wrong order in an evidence document would be worse
+  than an explicit placeholder.
+- **CJK** — would require a multi-megabyte font; out of scope for now.
 
 ## Development
 

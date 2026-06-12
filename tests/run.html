@@ -18,6 +18,13 @@
 
     <hr>
 
+    <h2>Extended-font PDF check (manual)</h2>
+    <p>Downloads DejaVu Sans from jsDelivr, embeds it, and generates a small PDF containing Cyrillic, Greek and extended-Latin text. Open the result and confirm those lines are readable while CJK and emoji remain placeholders.</p>
+    <button type="button" class="btn" id="extfont-btn">Generate extended-font test PDF</button>
+    <p class="progress-label" id="extfont-label"></p>
+
+    <hr>
+
     <h2>PDF performance fixture</h2>
     <p>Generates a 20,000-message exhibit. The page must stay responsive and show progress while it renders (the loop yields to the UI every 200 messages).</p>
     <button type="button" class="btn" id="perf-btn">Run 20k-message PDF test</button>
