@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExhibitKit — Parser &amp; PDF Tests</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <main class="wrap">
+    <h1>ExhibitKit test suite</h1>
+    <p>Runs the parser, hashing, sanitization and declaration tests in this browser. Open over <code>localhost</code> or HTTPS so <code>crypto.subtle</code> is available.</p>
+
+    <p class="test-summary" id="summary">Running…</p>
+    <ul class="test-results" id="results"></ul>
+
+    <hr>
+
+    <h2>PDF performance fixture</h2>
+    <p>Generates a 20,000-message exhibit. The page must stay responsive and show progress while it renders (the loop yields to the UI every 200 messages).</p>
+    <button type="button" class="btn" id="perf-btn">Run 20k-message PDF test</button>
+    <div class="progress-wrap">
+      <progress id="perf-progress" max="100" value="0" hidden></progress>
+      <p class="progress-label" id="perf-label"></p>
+    </div>
+  </main>
+  <script type="module" src="run.js"></script>
+</body>
+</html>
