@@ -1,0 +1,18 @@
+{
+  "name": "ExhibitKit",
+  "short_name": "ExhibitKit",
+  "description": "Turn text message exports into court-ready PDF exhibits — entirely on your device.",
+  "start_url": "app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#FAFAF7",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

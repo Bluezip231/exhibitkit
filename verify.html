@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify a File Hash — ExhibitKit</title>
+  <meta name="description" content="Independently verify a SHA-256 hash against a file, entirely in your browser. For judges' clerks, opposing counsel, or anyone checking an ExhibitKit exhibit's source file.">
+  <link rel="canonical" href="https://exhibitkit.com/verify.html">
+  <meta property="og:title" content="Verify a File Hash — ExhibitKit">
+  <meta property="og:description" content="Drop a file, compute its SHA-256 locally, and compare it to an expected hash.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/verify.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html" aria-current="page">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Verify a file hash</h1>
+    <p>This page lets anyone — a judge's clerk, opposing counsel, or you — confirm that a file matches the SHA-256 hash printed on an ExhibitKit exhibit. The file is hashed locally in your browser; it is never uploaded.</p>
+
+    <div id="crypto-error" class="notice-block" hidden>
+      <strong>This page needs a secure connection.</strong>
+      <p>Your browser's hashing engine (<code>crypto.subtle</code>) is only available over HTTPS or on <code>localhost</code>. Reload this page over HTTPS.</p>
+    </div>
+
+    <h2>1. Choose the file</h2>
+    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose or drop the file to hash">
+      <p class="dz-title">Drop the file here, or click to choose</p>
+      <p class="dz-sub">Any file type. Hashing happens on this device only.</p>
+    </div>
+    <input type="file" id="file-input" class="visually-hidden" aria-hidden="true" tabindex="-1">
+
+    <p id="hash-working" hidden>Hashing…</p>
+
+    <div id="hash-result" hidden>
+      <p id="file-meta" class="mono"></p>
+      <p style="margin-bottom: 0.25rem;"><strong>Computed SHA-256:</strong>
+        <button type="button" class="copy-btn" id="copy-hash">Copy</button></p>
+      <div class="hash-display" id="computed-hash" aria-live="polite"></div>
+    </div>
+
+    <h2>2. Paste the expected hash</h2>
+    <p>Copy the full 64-character hash from the exhibit's certification page (or cover page) and paste it here.</p>
+    <div class="field">
+      <label for="expected-hash" class="visually-hidden">Expected SHA-256 hash</label>
+      <textarea id="expected-hash" class="mono" rows="2" placeholder="e.g. a3f9c2…  (64 hex characters)" spellcheck="false"></textarea>
+    </div>
+
+    <div id="verify-result" class="verify-result" role="status" hidden></div>
+    <p id="verify-detail" hidden></p>
+
+    <hr>
+
+    <h2>What a matching hash proves — and what it doesn't</h2>
+    <p>A SHA-256 hash is a fingerprint of a file's exact bytes. If the hash of the file you just dropped matches the hash printed on the exhibit, the file is <strong>byte-for-byte identical</strong> to the source file that was hashed when the exhibit was prepared — even a one-character edit would produce a completely different hash. What a hash does <strong>not</strong> prove is who wrote the messages inside the file, or that the export itself was complete and unaltered before it was hashed. Those questions are matters of testimony and authentication, which is why ExhibitKit pairs every exhibit with a declaration template.</p>
+
+    <p>To double-check independently on a computer: on a Mac, run <code>shasum -a 256 yourfile</code> in Terminal; on Windows, run <code>certutil -hashfile yourfile SHA256</code> in Command Prompt; on Linux, <code>sha256sum yourfile</code>. All should print the same 64 characters shown above.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="guide.html">Export guide</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/verify.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

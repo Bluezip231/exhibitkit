@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExhibitKit — Turn Text Messages into Court-Ready Exhibits</title>
+  <meta name="description" content="Free, private tool that converts WhatsApp, SMS, Messenger and CSV message exports into court-ready PDF exhibits with SHA-256 integrity hashes, Bates numbers and a declaration page. Your messages never leave your device.">
+  <link rel="canonical" href="https://exhibitkit.com/">
+  <meta property="og:title" content="ExhibitKit — Turn Text Messages into Court-Ready Exhibits">
+  <meta property="og:description" content="Free. Private. Your messages never leave your device. Court-ready PDF exhibits with tamper-evident SHA-256 hashes.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ExhibitKit",
+    "url": "https://exhibitkit.com/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any (web browser)",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Free, privacy-first web app that converts text message exports (WhatsApp, Android SMS, Messenger, Instagram, CSV) into court-ready PDF evidence exhibits with SHA-256 integrity hashes, Bates numbering and a declaration of authenticity template. All processing happens in the browser."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is ExhibitKit really private?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. 100% of the processing happens in your browser. There is no server, no upload endpoint, no database and no account system. You can verify this yourself by opening your browser's network tab while using the tool — no request ever contains your file's content." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is this legal advice?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice. The included declaration is a template; requirements vary by court and jurisdiction." }
+      },
+      {
+        "@type": "Question",
+        "name": "Will courts accept exhibits made with ExhibitKit?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Admissibility depends on your court's rules and on authentication — usually your testimony that the messages are genuine. ExhibitKit helps with clean formatting and tamper-evidence (a SHA-256 hash of your original export on every page), which supports authentication, but no tool can guarantee a court will admit an exhibit." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export text messages from an iPhone?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Apple provides no built-in export for iMessage/SMS. WhatsApp chats export easily on any phone. For iMessage you need a computer and a third-party tool (such as the paid iMazing app, or the free imessage-exporter on a Mac) that can produce a CSV or TXT — see the export guide." }
+      },
+      {
+        "@type": "Question",
+        "name": "What file formats does ExhibitKit accept?",
+        "acceptedAnswer": { "@type": "Answer", "text": "WhatsApp chat exports (.txt), SMS Backup & Restore XML files from Android, Facebook Messenger and Instagram JSON exports (message_1.json), and generic CSV files with a column-mapping step." }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does ExhibitKit cost?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Nothing. ExhibitKit is free, with no account, no trial limits and no watermarks." }
+      },
+      {
+        "@type": "Question",
+        "name": "What does the SHA-256 hash prove?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The hash is a cryptographic fingerprint of your original export file. Anyone can later re-hash the same file (using the free verify page or standard command-line tools) and confirm it is byte-for-byte identical to the file used to prepare the exhibit. It proves the file hasn't changed; it does not by itself prove who wrote the messages." }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap wrap-wide">
+      <section class="hero">
+        <div>
+          <p class="kicker">Free · No account · Nothing uploaded</p>
+          <h1>Turn text messages into court-ready exhibits.</h1>
+          <p class="subhead">Free. Private. Your messages never leave your device.</p>
+          <div class="hero-cta">
+            <a class="btn btn-large" href="app.html">Build your exhibit</a>
+            <a href="guide.html">How do I export my messages?</a>
+          </div>
+        </div>
+        <div aria-hidden="true">
+          <div class="evidence-seal">
+            <p class="seal-title">Evidence Seal — source file integrity</p>
+            <dl>
+              <dt>File</dt><dd>WhatsApp Chat - John Smith.txt</dd>
+              <dt>Size</dt><dd>48,213 bytes</dd>
+              <dt>SHA-256</dt>
+              <dd><span class="seal-hash">a3f9c2e81b7d4f06c5a92e13d8b07f44<br>9c61e2a05d3f78b1e4c90a627d5b8f12</span></dd>
+              <dt>Hashed at</dt><dd>6/12/2026, 3:45:12 PM</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="wrap">
+      <section aria-labelledby="h-how">
+        <h2 id="h-how">How it works</h2>
+        <ol class="how-steps">
+          <li>
+            <h3>Export your messages</h3>
+            <p>From WhatsApp, Android SMS, Messenger or Instagram — the <a href="guide.html">guide</a> walks you through each one, button by button.</p>
+          </li>
+          <li>
+            <h3>Review &amp; redact</h3>
+            <p>Pick the messages that matter. Redact private details — redacted text is truly removed, not hidden under a black box.</p>
+          </li>
+          <li>
+            <h3>Download your exhibit</h3>
+            <p>A clean PDF with a cover page, Bates numbers, the integrity hash on every page, and a declaration template ready to sign.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="h-privacy">
+        <h2 id="h-privacy">The privacy promise</h2>
+        <p>Court matters involve the most sensitive messages you have. So ExhibitKit is built so that trusting us is unnecessary:</p>
+        <ul class="feature-list">
+          <li><strong>No uploads.</strong> Your file is read by your own browser, on your own device. There is no server to send it to.</li>
+          <li><strong>No accounts, no storage.</strong> Nothing is saved — not in the cloud, not even in your browser. Refresh the page and it's gone.</li>
+          <li><strong>Works offline.</strong> After your first visit, the builder works without an internet connection.</li>
+          <li><strong>Prove it yourself:</strong> open your browser's developer tools, watch the Network tab while you build an exhibit, and confirm that no request ever contains your messages. Then check our <a href="verify.html">hash verifier</a> against your computer's own <code>sha256sum</code>.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-what">
+        <h2 id="h-what">What you get</h2>
+        <ul class="feature-list">
+          <li>A <strong>SHA-256 integrity hash</strong> of your original export file, printed on every page footer and in full on the certification page — so anyone can verify the source file was never altered.</li>
+          <li><strong>Sequential Bates numbers</strong> on every message (e.g. EX-A-0001), so testimony can reference exact messages.</li>
+          <li>A <strong>cover page</strong> with your court, case caption and exhibit label.</li>
+          <li>A <strong>declaration of authenticity template</strong>, pre-filled with your case details, file name, byte size and hash — ready to date and sign.</li>
+          <li><strong>True redaction</strong>: redacted text is removed before the PDF is created and cannot be recovered from the document.</li>
+          <li>Clean, printable Letter-size formatting with page numbers (Page X of Y).</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-who">
+        <h2 id="h-who">Who it's for</h2>
+        <div class="audience-grid">
+          <div><strong>Family court</strong> Custody, divorce and support matters where message history tells the story.</div>
+          <div><strong>Small claims</strong> Agreements, payments and promises made over text.</div>
+          <div><strong>Landlord / tenant</strong> Repair requests, notices and disputes documented in messages.</div>
+          <div><strong>Attorneys &amp; paralegals</strong> Fast, consistent exhibit prep without per-seat software costs.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-faq">
+        <h2 id="h-faq">Frequently asked questions</h2>
+
+        <details class="faq">
+          <summary>Is ExhibitKit really private?</summary>
+          <p>Yes. 100% of the processing happens in your browser. There is no server, no upload endpoint, no database and no account system. You can verify this yourself: open your browser's developer tools and watch the Network tab while you use the tool — no request ever contains your file's content.</p>
+        </details>
+
+        <details class="faq">
+          <summary>Is this legal advice?</summary>
+          <p>No. ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice. The declaration it produces is a template — evidentiary and declaration requirements vary by court and jurisdiction, so check your court's rules or ask an attorney.</p>
+        </details>
+
+        <details class="faq">
+          <summary>Will courts accept exhibits made with ExhibitKit?</summary>
+          <p>Honest answer: it depends. Admissibility is governed by your court's rules and by authentication — usually your own testimony that the messages are genuine. ExhibitKit gives you court-ready formatting and tamper-evidence (the SHA-256 hash of your original export on every page), which supports authentication. No tool can guarantee a court will admit an exhibit.</p>
+        </details>
+
+        <details class="faq">
+          <summary>Can I export from iPhone?</summary>
+          <p>WhatsApp: yes, easily, on any phone. iMessage/SMS: Apple provides no export feature, so you'll need a computer and a third-party tool (paid iMazing on Mac/PC, or the free imessage-exporter on a Mac) that produces a CSV — which ExhibitKit accepts. The <a href="guide.html#iphone">export guide</a> is straight with you about this.</p>
+        </details>
+
+        <details class="faq">
+          <summary>What formats are supported?</summary>
+          <p>WhatsApp chat exports (.txt, iOS or Android), SMS Backup &amp; Restore XML files (Android), Facebook Messenger and Instagram JSON exports (message_1.json — JSON format, not HTML), and generic CSV files with a column-mapping step for everything else.</p>
+        </details>
+
+        <details class="faq">
+          <summary>How much does it cost?</summary>
+          <p>Nothing. No account, no trial limits, no watermarks. The whole tool is a static website.</p>
+        </details>
+
+        <details class="faq">
+          <summary>What does the SHA-256 hash actually prove?</summary>
+          <p>It's a cryptographic fingerprint of your original export file. Anyone can re-hash the same file later — with our <a href="verify.html">verify page</a> or standard command-line tools — and confirm it is byte-for-byte identical to the file used to prepare the exhibit. It proves the file hasn't been altered since hashing; it does not by itself prove who wrote the messages.</p>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by the maker of <a href="https://scamkit.com">ScamKit.com</a>.</p>
+    </div>
+  </footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

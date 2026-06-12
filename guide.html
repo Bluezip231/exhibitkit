@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Export Your Messages — ExhibitKit</title>
+  <meta name="description" content="Step-by-step instructions for exporting WhatsApp chats, Android SMS, Facebook Messenger, Instagram DMs and iPhone messages so you can turn them into court-ready exhibits.">
+  <link rel="canonical" href="https://exhibitkit.com/guide.html">
+  <meta property="og:title" content="How to Export Your Messages — ExhibitKit">
+  <meta property="og:description" content="Honest, button-by-button export instructions for every platform — including the hard truth about iPhone.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/guide.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html" aria-current="page">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>How to export your messages</h1>
+    <p>Getting messages out of your phone is the only genuinely fiddly part of this process, and how hard it is depends entirely on where the conversation lives. This guide is ordered from easiest to hardest, and it's honest about the hard one. Find your situation below.</p>
+
+    <nav aria-label="On this page">
+      <ul>
+        <li><a href="#whatsapp">WhatsApp (any phone)</a> — easiest</li>
+        <li><a href="#android-sms">Android text messages (SMS)</a> — easy</li>
+        <li><a href="#meta">Facebook Messenger &amp; Instagram DMs</a> — free, but not instant</li>
+        <li><a href="#iphone">iPhone text messages (iMessage/SMS)</a> — the hard one</li>
+      </ul>
+    </nav>
+
+    <!-- 1. WhatsApp -->
+    <section class="guide-section" id="whatsapp" aria-labelledby="h-wa">
+      <h2 id="h-wa">WhatsApp — the easiest way, regardless of your phone <span class="difficulty easy">Easy</span></h2>
+      <p>WhatsApp has a built-in export on both iPhone and Android, and many people have the relevant conversation there anyway. The export is a <code>.txt</code> file that ExhibitKit reads directly.</p>
+
+      <h3>On iPhone</h3>
+      <ol>
+        <li>Open the chat you need.</li>
+        <li>Tap the <span class="ui-name">contact's name</span> at the top of the chat.</li>
+        <li>Scroll down and tap <span class="ui-name">Export Chat</span>.</li>
+        <li>Choose <span class="ui-name">Without Media</span> (the text is what matters, and the file stays small).</li>
+        <li>In the share sheet, choose <span class="ui-name">Save to Files</span> and pick a folder you'll remember.</li>
+        <li>Upload that <code>.txt</code> file in the <a href="app.html">builder</a>.</li>
+      </ol>
+
+      <h3>On Android</h3>
+      <ol>
+        <li>Open the chat you need.</li>
+        <li>Tap the <span class="ui-name">⋮</span> menu (top right) → <span class="ui-name">More</span> → <span class="ui-name">Export chat</span>.</li>
+        <li>Choose <span class="ui-name">Without media</span>.</li>
+        <li>Save or share the file somewhere you can find it (e.g. your Downloads folder or email it to yourself), then upload the <code>.txt</code> file in the <a href="app.html">builder</a>.</li>
+      </ol>
+
+      <p class="hint">Tip: if the dates in your export look swapped (day and month reversed), the builder has a "Dates are Day/Month" toggle — your original timestamps are always printed exactly as exported either way.</p>
+    </section>
+
+    <!-- 2. Android SMS -->
+    <section class="guide-section" id="android-sms" aria-labelledby="h-sms">
+      <h2 id="h-sms">Android text messages (SMS) <span class="difficulty easy">Easy</span></h2>
+      <p>For regular text messages on Android, the free <strong>SMS Backup &amp; Restore</strong> app (by SyncTech) is the standard tool. No computer needed — the file it creates works directly with ExhibitKit.</p>
+      <ol>
+        <li>Install <span class="ui-name">SMS Backup &amp; Restore</span> from the Play Store (free).</li>
+        <li>Open it and tap <span class="ui-name">Set up a backup</span> (or <span class="ui-name">Back up now</span>).</li>
+        <li>Back up <span class="ui-name">Messages</span> — make sure the format is <strong>XML</strong> (the default).</li>
+        <li>Choose where to save it (phone storage is fine; you can also let it copy to Google Drive and download from there).</li>
+        <li>Find the <code>.xml</code> file in your phone's storage (usually a folder named <code>SMSBackupRestore</code>) and upload it in the <a href="app.html">builder</a>.</li>
+      </ol>
+      <p class="hint">The backup contains all conversations; in Step 2 of the builder you can filter by sender and date to keep only the conversation you need.</p>
+    </section>
+
+    <!-- 3. Meta -->
+    <section class="guide-section" id="meta" aria-labelledby="h-meta">
+      <h2 id="h-meta">Facebook Messenger &amp; Instagram DMs <span class="difficulty medium">Free, but not instant</span></h2>
+      <p>Meta lets you download your message history on any phone or computer through its official export tool. It works well — but Meta prepares the file and notifies you when it's ready, which can take anywhere from <strong>a few minutes to a couple of days</strong>. Request it well before any court deadline.</p>
+      <ol>
+        <li>Open <span class="ui-name">Settings</span> → <span class="ui-name">Accounts Center</span> (in Facebook, Messenger or Instagram).</li>
+        <li>Go to <span class="ui-name">Your information and permissions</span> → <span class="ui-name">Download your information</span>.</li>
+        <li>Choose <span class="ui-name">Download or transfer information</span>, then pick the profile (Messenger or Instagram).</li>
+        <li>Choose <span class="ui-name">Some of your information</span> and select only <span class="ui-name">Messages</span>.</li>
+        <li><strong>Critical:</strong> set the format to <strong>JSON</strong>. The HTML format will NOT work with ExhibitKit.</li>
+        <li>Pick a date range that covers what you need — a narrower range keeps the file small.</li>
+        <li>Submit the request. Meta will notify you when the download is ready.</li>
+        <li>Download the <code>.zip</code> file and <strong>unzip it</strong> (on a phone, your Files app can usually do this; on a computer, double-click it).</li>
+        <li>Inside, find your conversation's folder — the path looks like <code>your_facebook_activity/messages/inbox/jane_abc123/message_1.json</code> (Instagram is similar under <code>messages/inbox/</code>).</li>
+        <li>Upload the <code>message_1.json</code> file in the <a href="app.html">builder</a>. Long conversations are split into <code>message_2.json</code>, <code>message_3.json</code>, etc. — select them all at once and ExhibitKit merges them in order, listing each file's hash on the certification page.</li>
+      </ol>
+      <p class="hint">End-to-end encrypted Messenger chats are downloaded through the secure storage flow inside the same Download Your Information tool.</p>
+    </section>
+
+    <!-- 4. iPhone -->
+    <section class="guide-section" id="iphone" aria-labelledby="h-iphone">
+      <h2 id="h-iphone">iPhone text messages (iMessage/SMS) <span class="difficulty hard">The hard one</span></h2>
+      <p><strong>Apple does not include an export feature for text messages.</strong> We won't pretend otherwise — there is no free, built-in way to get iMessage history off an iPhone. If your conversation is in iMessage rather than WhatsApp, you will need a computer and one of these:</p>
+
+      <h3>Paid, easiest: iMazing</h3>
+      <ol>
+        <li><a href="https://imazing.com" rel="noopener">iMazing</a> (Mac or PC, roughly $40–60 — a paid third-party product; we have no affiliation) connects to your iPhone by USB.</li>
+        <li>Select <span class="ui-name">Messages</span> in iMazing, pick the conversation, and export it as <strong>CSV</strong>.</li>
+        <li>Upload the CSV in the <a href="app.html">builder</a> — a column-mapping step lets you point ExhibitKit at the timestamp, sender and message columns.</li>
+      </ol>
+
+      <h3>Free, requires a Mac: imessage-exporter</h3>
+      <p>For comfortable computer users: the open-source <a href="https://github.com/ReagentX/imessage-exporter" rel="noopener">imessage-exporter</a> command-line tool exports messages synced to your Mac's Messages app as TXT. It's free and well maintained, but it is a command-line tool — if "Terminal" sounds unfamiliar, iMazing will be far less frustrating.</p>
+
+      <h3>Fallback: any tool that makes a CSV</h3>
+      <p>Any export tool that can produce a CSV with one row per message — containing a timestamp, a sender and the message text — will work with ExhibitKit's CSV column mapper.</p>
+
+      <p>One practical note: if both people are reachable on WhatsApp, moving the conversation there for the future is the simplest long-term fix — but for existing iMessage history, the options above are what exist.</p>
+    </section>
+
+    <p>Once you have your file: <a class="btn" href="app.html">Open the exhibit builder</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>
