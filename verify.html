@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
@@ -32,7 +33,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
     <h1>Verify a file hash</h1>
     <p>This page lets anyone — a judge's clerk, opposing counsel, or you — confirm that a file matches the SHA-256 hash printed on an ExhibitKit exhibit. The file is hashed locally in your browser; it is never uploaded.</p>
 
@@ -52,7 +53,7 @@
 
     <div id="hash-result" hidden>
       <p id="file-meta" class="mono"></p>
-      <p style="margin-bottom: 0.25rem;"><strong>Computed SHA-256:</strong>
+      <p class="tight"><strong>Computed SHA-256:</strong>
         <button type="button" class="copy-btn" id="copy-hash">Copy</button></p>
       <div class="hash-display" id="computed-hash" aria-live="polite"></div>
     </div>
@@ -83,10 +84,6 @@
   </footer>
 
   <script type="module" src="js/verify.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
-    }
-  </script>
+  <script src="js/pwa.js" defer></script>
 </body>
 </html>

@@ -75,6 +75,7 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
@@ -87,7 +88,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main">
     <div class="wrap wrap-wide">
       <section class="hero">
         <div>
@@ -140,6 +141,7 @@
           <li><strong>No uploads.</strong> Your file is read by your own browser, on your own device. There is no server to send it to.</li>
           <li><strong>No accounts, no storage.</strong> Nothing is saved — not in the cloud, not even in your browser. Refresh the page and it's gone.</li>
           <li><strong>Works offline.</strong> After your first visit, the builder works without an internet connection.</li>
+          <li><strong>Enforced by the browser itself.</strong> The site ships a strict Content-Security-Policy header: the browser refuses any network connection except to this site and its static asset hosts. Even a hidden bug could not send your messages to a server, because no server is on the allowlist.</li>
           <li><strong>Prove it yourself:</strong> open your browser's developer tools, watch the Network tab while you build an exhibit, and confirm that no request ever contains your messages. Then check our <a href="verify.html">hash verifier</a> against your computer's own <code>sha256sum</code>.</li>
         </ul>
       </section>
@@ -215,10 +217,6 @@
     </div>
   </footer>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
-    }
-  </script>
+  <script src="js/pwa.js" defer></script>
 </body>
 </html>

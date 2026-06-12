@@ -1,0 +1,14 @@
+# Netlify response headers.
+#
+# The Content-Security-Policy is part of the product's privacy promise:
+# the browser itself refuses to connect anywhere except this site and the
+# static asset hosts (jsPDF on cdnjs, Google Fonts, the optional DejaVu
+# font on jsDelivr). Even a hidden bug could not transmit message content
+# to a server, because no server is on the allowlist.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
