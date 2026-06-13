@@ -87,11 +87,18 @@ export function parseMetaFiles(files, opts = {}) {
     rawMessages.push(...data.messages);
   }
 
-  // Meta exports are newest-first; sort ascending for the exhibit.
-  rawMessages.sort((a, b) => (a.timestamp_ms || 0) - (b.timestamp_ms || 0));
+  // Meta exports are newest-first; sort ascending for the exhibit. Coerce the
+  // timestamp once (some re-serialized exports store it as a numeric string)
+  // so the sort key and the Date agree.
+  const epochOf = (m) => {
+    const n = Number(m.timestamp_ms);
+    return Number.isFinite(n) ? n : null;
+  };
+  rawMessages.sort((a, b) => (epochOf(a) ?? 0) - (epochOf(b) ?? 0));
 
   const messages = rawMessages.map((m, i) => {
-    const ts = Number.isFinite(m.timestamp_ms) ? new Date(m.timestamp_ms) : null;
+    const epoch = epochOf(m);
+    const ts = epoch != null ? new Date(epoch) : null;
     const { body, isSystem } = buildBody(m, includeReactions);
     return {
       index: i,

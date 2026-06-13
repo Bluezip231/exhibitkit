@@ -498,13 +498,15 @@ function senderKey(m) {
   return '__unknown__';
 }
 
-function senderLabel(m) {
+/** The declarant's name (read once); falls back to "Me" for sent messages. */
+function declarantName() {
+  return ($('f-declarant') && $('f-declarant').value.trim()) || 'Me';
+}
+
+function senderLabel(m, meName) {
   if (m.isSystem && !m.sender) return '(system)';
   if (m.sender) return m.sender;
-  if (m.direction === 'sent') {
-    const me = ($('f-declarant') && $('f-declarant').value.trim()) || 'Me';
-    return me;
-  }
+  if (m.direction === 'sent') return meName || declarantName();
   return 'Unknown';
 }
 
@@ -536,6 +538,7 @@ function computeFiltered() {
   const toVal = $('filter-to').value;
   const from = fromVal ? new Date(`${fromVal}T00:00:00`) : null;
   const to = toVal ? new Date(`${toVal}T23:59:59.999`) : null;
+  const meName = declarantName(); // read once, not per-message in the hot loop
 
   state.filtered = state.messages.filter((m) => {
     if (senderFilter && senderKey(m) !== senderFilter) return false;
@@ -546,7 +549,7 @@ function computeFiltered() {
     }
     if (q) {
       const body = currentBody(m.index).toLowerCase();
-      if (!body.includes(q) && !senderLabel(m).toLowerCase().includes(q)) return false;
+      if (!body.includes(q) && !senderLabel(m, meName).toLowerCase().includes(q)) return false;
     }
     return true;
   }).map((m) => m.index);
@@ -687,7 +690,8 @@ function replaceRow(index, li) {
 }
 
 function bulkSelect(on) {
-  computeFiltered();
+  // state.filtered is kept current by the filter inputs (each re-renders),
+  // so reuse it rather than recomputing here and again inside renderList.
   for (const idx of state.filtered) {
     if (on) state.selection.add(idx);
     else state.selection.delete(idx);
@@ -775,9 +779,14 @@ function confirmRedaction(index, li) {
   const length = range.toString().length;
   if (length === 0) return fail('Nothing selected yet — highlight some text first.');
 
-  const { body: newBody } = redactRange(currentBody(index), start, length);
+  const { body: newBody, count } = redactRange(currentBody(index), start, length);
+  if (count === 0) {
+    // Nothing was actually removed — never report a redaction that didn't
+    // happen in an evidence document.
+    return fail('That selection could not be redacted — try selecting the text again.');
+  }
   const prev = state.redactions.get(index);
-  state.redactions.set(index, { body: newBody, count: (prev ? prev.count : 0) + 1 });
+  state.redactions.set(index, { body: newBody, count: (prev ? prev.count : 0) + count });
 
   sel.removeAllRanges();
   state.redactingIndex = null;

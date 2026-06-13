@@ -59,14 +59,14 @@ export function buildDeclaration(input) {
   }
 
   if (sources.length <= 1) {
-    const hash = sources[0] ? sources[0].hashHex : BLANK;
+    const hash = (sources[0] && sources[0].hashHex) || BLANK;
     paragraphs.push(
       `The SHA-256 cryptographic hash of that file is: ${hash}. This hash was ` +
       `computed at the time of exhibit preparation and can be used to verify ` +
       `that the source file has not been altered since.`
     );
   } else {
-    const hashList = sources.map((s) => `"${s.name}": ${s.hashHex}`).join('; ');
+    const hashList = sources.map((s) => `"${s.name}": ${s.hashHex || BLANK}`).join('; ');
     paragraphs.push(
       `The SHA-256 cryptographic hashes of those files are: ${hashList}. These ` +
       `hashes were computed at the time of exhibit preparation and can be used ` +

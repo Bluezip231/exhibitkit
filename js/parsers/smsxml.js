@@ -32,8 +32,7 @@ export function parseSmsXml(xmlText) {
   for (const el of doc.querySelectorAll('sms')) {
     const type = el.getAttribute('type');
     const direction = type === '1' ? 'received' : type === '2' ? 'sent' : null;
-    const epoch = Number(el.getAttribute('date'));
-    const timestamp = Number.isFinite(epoch) && epoch > 0 ? new Date(epoch) : null;
+    const timestamp = parseEpoch(el.getAttribute('date'));
     const readable = el.getAttribute('readable_date');
 
     out.push({
@@ -50,10 +49,7 @@ export function parseSmsXml(xmlText) {
   for (const el of doc.querySelectorAll('mms')) {
     const msgBox = el.getAttribute('msg_box');
     const direction = msgBox === '1' ? 'received' : msgBox === '2' ? 'sent' : null;
-    let epoch = Number(el.getAttribute('date'));
-    // Some sources store MMS dates in epoch seconds rather than milliseconds.
-    if (Number.isFinite(epoch) && epoch > 0 && epoch < 1e12) epoch *= 1000;
-    const timestamp = Number.isFinite(epoch) && epoch > 0 ? new Date(epoch) : null;
+    const timestamp = parseEpoch(el.getAttribute('date'));
     const readable = el.getAttribute('readable_date');
 
     const pieces = [];
@@ -79,14 +75,29 @@ export function parseSmsXml(xmlText) {
     });
   }
 
-  // Chronological order (stable; null timestamps keep their relative spot).
+  // Chronological order. Total-order comparator (a null/zero timestamp sorts
+  // to the end); the sort is stable so equal-key messages keep source order.
   out.sort((a, b) => {
-    if (!a.timestamp || !b.timestamp) return 0;
-    return a.timestamp - b.timestamp;
+    const ta = a.timestamp ? a.timestamp.getTime() : Infinity;
+    const tb = b.timestamp ? b.timestamp.getTime() : Infinity;
+    if (ta === tb) return 0;
+    return ta < tb ? -1 : 1;
   });
   out.forEach((m, i) => { m.index = i; });
 
   return { messages: out };
+}
+
+/**
+ * Parse a date attribute into a Date. SMS Backup & Restore writes epoch
+ * milliseconds, but some tools (and some MMS rows) write epoch seconds;
+ * scale up sub-2001 millisecond values so SMS and MMS are treated alike.
+ */
+function parseEpoch(raw) {
+  let epoch = Number(raw);
+  if (!Number.isFinite(epoch) || epoch <= 0) return null;
+  if (epoch < 1e12) epoch *= 1000; // seconds → milliseconds
+  return new Date(epoch);
 }
 
 function pickContactName(el) {

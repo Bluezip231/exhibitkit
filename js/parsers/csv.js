@@ -40,7 +40,12 @@ export function parseCsv(text, delimiter) {
       field += ch; i++; continue;
     }
 
-    if (ch === '"' && field === '') { inQuotes = true; i++; continue; }
+    // A field opens a quoted section at its start. RFC 4180 is strict here,
+    // but many real exporters emit `, "value, with comma"` with spaces after
+    // the delimiter; treat a quote following only leading whitespace as the
+    // field opener (discarding that insignificant whitespace) so the embedded
+    // comma/newline does not split the field.
+    if (ch === '"' && field.trim() === '') { field = ''; inQuotes = true; i++; continue; }
     if (ch === delim) { row.push(field); field = ''; i++; continue; }
     if (ch === '\r') { i++; continue; }
     if (ch === '\n') {

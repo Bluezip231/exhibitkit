@@ -199,11 +199,10 @@ function sanitizePart(s) {
 
 /** e.g. "Exhibit-A_Smith-v-Smith_2026-06-12.pdf" */
 export function buildFileName(caseInfo, date = new Date(), suffix = '') {
-  const ymd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const parts = [
     sanitizePart(caseInfo.exhibitLabel || 'Exhibit'),
     sanitizePart(caseInfo.caseCaption || ''),
-    ymd + suffix,
+    ymd(date) + suffix,
   ].filter(Boolean);
   return parts.join('_') + '.pdf';
 }
@@ -252,12 +251,14 @@ export async function generateExhibitPdf(opts) {
   }
   if (onProgress) onProgress(messages.length, messages.length);
 
-  // Declaration page(s)
-  const precedingPages = doc.getNumberOfPages();
+  // Declaration page(s). The declaration states how many preceding pages
+  // contain message copies, so exclude the cover page (page 1, which holds
+  // only the caption and Evidence Seal).
+  const messagePages = Math.max(1, doc.getNumberOfPages() - 1);
   const decl = buildDeclaration({
     caseInfo,
     messageCount: messages.length,
-    precedingPages,
+    precedingPages: messagePages,
     sources,
     redactedCount,
     exportDate,
@@ -378,15 +379,21 @@ function drawSealBox(doc, ctx, sources, genDate) {
 
   monoBold('EVIDENCE SEAL — SOURCE FILE INTEGRITY');
   rows.push({ gap: 6 });
+  // With multiple sources, each file may have been hashed at a different
+  // moment, so print its own "Hashed:" time inside its block. With one
+  // source, a single trailing "Hashed:" line reads more cleanly.
+  const multi = sources.length > 1;
   for (const s of sources) {
     mono(`File:    ${fitMono(doc, sanitizeForPdf(s.name, ctx.ext).text, boxW - pad * 2 - 50)}`);
     mono(`Size:    ${s.sizeBytes.toLocaleString('en-US')} bytes`);
     mono(`SHA-256: ${s.hashHex.slice(0, 32)}`, SEAL);
     mono(`         ${s.hashHex.slice(32)}`, SEAL);
+    if (multi) mono(`Hashed:  ${s2(s.hashedAt || genDate)}`);
     rows.push({ gap: 4 });
   }
-  const hashedAt = (sources[0] && sources[0].hashedAt) || genDate;
-  mono(`Hashed:  ${s2(hashedAt)}`);
+  if (!multi) {
+    mono(`Hashed:  ${s2((sources[0] && sources[0].hashedAt) || genDate)}`);
+  }
   rows.push({ gap: 6 });
   rows.push({
     text: "Generated with ExhibitKit (exhibitkit.com) — all processing performed locally on the user's device.",
@@ -439,10 +446,15 @@ function fitMono(doc, text, maxW) {
   return t + '…';
 }
 
+/** Local calendar date as YYYY-MM-DD. */
+function ymd(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function s2(d) {
   const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
-    `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} (local time)`;
+  return `${ymd(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} (local time)`;
 }
 
 // ---------------------------------------------------------------------------
@@ -612,7 +624,7 @@ function drawDeclaration(doc, ctx, decl) {
 
 function stampFooters(doc, sources, genDate) {
   const total = doc.getNumberOfPages();
-  const dateText = `Generated ${genDate.getFullYear()}-${String(genDate.getMonth() + 1).padStart(2, '0')}-${String(genDate.getDate()).padStart(2, '0')}`;
+  const dateText = `Generated ${ymd(genDate)}`;
   const leftText = sources.length === 1
     ? `Source file SHA-256: ${truncatedHash(sources[0].hashHex)}`
     : `Source files: ${sources.length} — SHA-256 hashes on certification page`;

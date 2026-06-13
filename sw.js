@@ -11,9 +11,11 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v3';
+const VERSION = 'exhibitkit-v4';
 
-const PRECACHE = [
+// Same-origin assets: must all cache for the app to work offline, so these
+// are cached atomically and a failure fails the install (retried next visit).
+const PRECACHE_LOCAL = [
   './',
   'index.html',
   'app.html',
@@ -36,13 +38,23 @@ const PRECACHE = [
   'js/parsers/csv.js',
   'assets/favicon.svg',
   'manifest.webmanifest',
+];
+
+// Cross-origin CDN assets: cached best-effort. A slow or blocked CDN on the
+// first visit must NOT fail the whole install (which would leave the user
+// with no offline support at all); they get cached on first successful fetch.
+const PRECACHE_REMOTE = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(VERSION)
-      .then((cache) => cache.addAll(PRECACHE))
+      .then((cache) => Promise.all([
+        cache.addAll(PRECACHE_LOCAL),                 // atomic: critical assets
+        ...PRECACHE_REMOTE.map((u) =>                  // best-effort: CDN assets
+          cache.add(u).catch(() => undefined)),
+      ]))
       .then(() => self.skipWaiting())
   );
 });
@@ -77,6 +89,18 @@ self.addEventListener('fetch', (event) => {
           caches.open(VERSION).then((cache) => cache.put(request, copy));
         }
         return response;
+      }).catch(async () => {
+        // Offline and not in cache. For a page navigation (e.g. a bookmarked
+        // app.html?ref=… whose query string missed the exact-match cache),
+        // fall back to the cached document ignoring the query string, then to
+        // the app shell, so the app still opens offline instead of erroring.
+        if (request.mode === 'navigate') {
+          return (await caches.match(request, { ignoreSearch: true }))
+            || (await caches.match('index.html'))
+            || (await caches.match('./'))
+            || Response.error();
+        }
+        return Response.error();
       });
     })
   );

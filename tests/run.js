@@ -125,6 +125,28 @@ test('smsxml: sms + mms, directions, contact names, attachments', () => {
   assert(messages[0].timestamp < messages[1].timestamp, 'chronological order');
 });
 
+test('smsxml: epoch-seconds dates scaled to ms like MMS (not 1970)', () => {
+  const xml = '<smses>'
+    + '<sms type="1" date="1718200000" body="sec" contact_name="A"/>'
+    + '<sms type="1" date="1718200000000" body="ms" contact_name="A"/>'
+    + '</smses>';
+  const { messages } = parseSmsXml(xml);
+  assertEqual(messages[0].timestamp.getFullYear(), messages[1].timestamp.getFullYear(),
+    'seconds and millisecond rows land in the same year');
+  assert(messages[0].timestamp.getFullYear() > 2020, 'seconds value is not stuck in 1970');
+});
+
+test('smsxml: a null/zero-timestamp row does not corrupt dated ordering', () => {
+  const xml = '<smses>'
+    + '<sms type="1" date="1718200000000" body="later" contact_name="X"/>'
+    + '<sms type="1" date="0" body="nodate" contact_name="X"/>'
+    + '<sms type="1" date="1718100000000" body="earlier" contact_name="X"/>'
+    + '</smses>';
+  const order = parseSmsXml(xml).messages.map((m) => m.body);
+  assert(order.indexOf('earlier') < order.indexOf('later'),
+    `dated messages stay chronological around a null timestamp (${order.join(',')})`);
+});
+
 // ---------------------------------------------------------------------------
 // Meta parser
 // ---------------------------------------------------------------------------
@@ -165,6 +187,21 @@ test('meta: two-file merge, unsent marker', () => {
   }
 });
 
+test('meta: numeric-string timestamp_ms both sorts and yields a Date', () => {
+  const json = JSON.stringify({
+    participants: [{ name: 'A' }],
+    messages: [
+      { sender_name: 'A', timestamp_ms: '1718200200000', content: 'newer' },
+      { sender_name: 'A', timestamp_ms: '1718200100000', content: 'older' },
+    ],
+  });
+  const { messages } = parseMetaFiles([{ name: 's.json', text: json }]);
+  assertEqual(messages.map((m) => m.body).join(','), 'older,newer', 'sorted ascending');
+  assert(messages[0].timestamp instanceof Date && !Number.isNaN(messages[0].timestamp.getTime()),
+    'string timestamp produced a valid Date');
+  assert(messages[0].rawTimestamp.length > 0, 'string timestamp produced a display string');
+});
+
 test('meta: invalid file produces a friendly error', () => {
   let threw = false;
   try {
@@ -186,6 +223,13 @@ test('csv: RFC 4180 quoting — commas, newlines, escaped quotes', () => {
   assertEqual(rows[1][2], 'Hello, with a comma');
   assertEqual(rows[2][2], 'Line one\nLine two', 'newline inside quoted field');
   assertEqual(rows[3][2], 'He said "yes"', 'escaped quotes');
+});
+
+test('csv: a quote after whitespace following the delimiter still opens the field', () => {
+  // Common in real exporters: `, "value, with comma"` (space before quote).
+  const rows = parseCsv('1718200000000, "Hello, world", Bob');
+  assertEqual(rows[0].length, 3, 'embedded comma did not split the field');
+  assertEqual(rows[0][1], 'Hello, world', 'quoted value preserved intact');
 });
 
 test('csv: header detection and message mapping', () => {
