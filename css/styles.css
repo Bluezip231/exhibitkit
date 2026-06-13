@@ -759,6 +759,13 @@ progress {
 
 .hero-cta { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: center; }
 
+.hero-byline {
+  margin: 1.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.hero-byline a { color: var(--muted); }
+
 .kicker {
   font-family: var(--font-mono);
   font-size: 0.78rem;
