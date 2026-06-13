@@ -11,7 +11,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v4';
+const VERSION = 'exhibitkit-v5';
 
 // Same-origin assets: must all cache for the app to work offline, so these
 // are cached atomically and a failure fails the install (retried next visit).
@@ -22,6 +22,12 @@ const PRECACHE_LOCAL = [
   'verify.html',
   'guide.html',
   'scam-evidence.html',
+  'about.html',
+  'contact.html',
+  'contact-success.html',
+  'support.html',
+  'privacy.html',
+  '404.html',
   'css/styles.css',
   'js/app.js',
   'js/verify.js',

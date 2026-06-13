@@ -36,6 +36,11 @@ guide.html        Per-platform export walkthroughs
 scam-evidence.html  Use-case guide for fraud victims (police / IC3 / FTC /
                   bank disputes), cross-linked with ScamKit.com — the same
                   maker's scam-checking and recovery site
+about.html        What it is / who built it / design principles
+contact.html      Netlify contact form (honeypot, no JS) + contact-success.html
+privacy.html      Plain-English privacy policy
+support.html      Free ways to help + optional donation
+404.html          Branded not-found page (served by Netlify)
 css/styles.css    Single stylesheet; design tokens at the top
 js/
   app.js          Builder orchestration + in-memory state (nothing persisted)

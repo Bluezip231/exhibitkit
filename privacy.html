@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — ExhibitKit</title>
+  <meta name="description" content="ExhibitKit's privacy policy in plain English: your message files are processed only in your browser and never uploaded. The only data we receive is what you send through the contact form.">
+  <link rel="canonical" href="https://exhibitkit.com/privacy.html">
+  <meta property="og:title" content="Privacy Policy — ExhibitKit">
+  <meta property="og:description" content="Your message files never leave your device. Plain-English privacy policy.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/privacy.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>Privacy policy</h1>
+    <p class="hint">Last updated: June 13, 2026.</p>
+
+    <p class="notice notice-success"><strong>The short version:</strong> your message files are read and processed entirely in your browser and are never uploaded to us or anyone else. The only information we ever receive is what you choose to type into the contact form.</p>
+
+    <h2>Your message exports and exhibits</h2>
+    <p>When you use the <a href="app.html">builder</a> or the <a href="verify.html">verify</a> page, the files you choose are read by your own browser using the local File API, processed in memory, and turned into a PDF on your device. They are <strong>never</strong> sent to a server. We have no upload endpoint, no database, and no account system, so there is nowhere for your messages to go. This isn't only a promise — the site is served with a strict Content-Security-Policy that prevents the page from connecting anywhere except the static asset hosts listed below, so the browser itself blocks any attempt to transmit your file content. You can confirm it by watching your browser's network tab while you build an exhibit.</p>
+    <p>Nothing is stored, either: we don't use cookies, localStorage, sessionStorage, or any other persistence for your message content (or anything else). Refreshing the page erases your session entirely.</p>
+
+    <h2>The contact form</h2>
+    <p>The <a href="contact.html">contact form</a> is the one place data is intentionally sent. When you submit it, your name, email (if provided), topic, and message are sent to our hosting provider, Netlify, which stores the submission and notifies us so we can reply. We ask you not to include private message content or evidence in it. We use what you send only to respond to you; we don't sell it or use it for marketing.</p>
+
+    <h2>Ordinary web-hosting data</h2>
+    <p>Like any website, when your browser loads ExhibitKit it makes normal web requests that the servers involved can see (such as your IP address and browser type):</p>
+    <ul class="feature-list">
+      <li><strong>Netlify</strong> hosts the site and may keep standard server access logs.</li>
+      <li><strong>cdnjs</strong> (Cloudflare) serves the jsPDF library, <strong>Google Fonts</strong> serves the fonts, and <strong>jsDelivr</strong> serves the optional extended PDF font if you turn it on. Loading those assets reveals your IP to those CDNs, as with any site that uses them.</li>
+    </ul>
+    <p>We don't add any analytics, trackers, advertising, or third-party scripts beyond those asset hosts. After your first visit the app is cached by a service worker and works offline, so it can run without contacting anything at all.</p>
+
+    <h2>Children</h2>
+    <p>ExhibitKit isn't directed at children and doesn't knowingly collect information from them.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, we'll update the date above. Questions? <a href="contact.html">Contact us</a>.</p>
+
+    <p class="hint">This policy describes how the website handles data and is not legal advice.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by the maker of <a href="https://scamkit.com">ScamKit.com</a> — free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>
