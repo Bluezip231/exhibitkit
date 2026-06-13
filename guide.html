@@ -123,10 +123,10 @@
       </ol>
 
       <h3>Free, requires a Mac: imessage-exporter</h3>
-      <p>For comfortable computer users: the open-source <a href="https://github.com/ReagentX/imessage-exporter" rel="noopener">imessage-exporter</a> command-line tool exports messages synced to your Mac's Messages app as TXT or HTML. It's free and well maintained, but it is a command-line tool — if "Terminal" sounds unfamiliar, iMazing will be far less frustrating.</p>
+      <p>For comfortable computer users: the open-source <a href="https://github.com/ReagentX/imessage-exporter" rel="noopener">imessage-exporter</a> command-line tool exports messages synced to your Mac's Messages app as TXT or HTML. It's free and well maintained, but two caveats: it's a command-line tool (if "Terminal" sounds unfamiliar, iMazing will be far less frustrating), and ExhibitKit doesn't read its TXT or HTML output <em>directly</em> — you'd convert it into a CSV (one row per message: timestamp, sender, text) first, then use the CSV uploader below. For most people, iMazing's direct CSV export is the simpler route.</p>
 
       <h3>Fallback: any tool that makes a CSV</h3>
-      <p>Any export tool that can produce a CSV with one row per message — containing a timestamp, a sender and the message text — will work with ExhibitKit's CSV column mapper.</p>
+      <p>The most reliable iPhone path into ExhibitKit is a <strong>CSV</strong>. Any export tool that can produce a CSV with one row per message — containing a timestamp, a sender and the message text — will work with ExhibitKit's CSV column mapper. (Plain TXT and HTML exports are not read directly; convert them to CSV first.)</p>
 
       <p>One practical note: if both people are reachable on WhatsApp, moving the conversation there for the future is the simplest long-term fix — but for existing iMessage history, the options above are what exist.</p>
     </section>
