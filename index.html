@@ -67,6 +67,11 @@
       },
       {
         "@type": "Question",
+        "name": "Can I use ExhibitKit for a police report or fraud complaint instead of court?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The same hash-sealed, numbered PDF works for a police report, an IC3 or FTC fraud complaint, or a bank dispute — the declaration page is optional. ExhibitKit's scam evidence guide walks through preserving and documenting messages from a scammer." }
+      },
+      {
+        "@type": "Question",
         "name": "What does the SHA-256 hash prove?",
         "acceptedAnswer": { "@type": "Answer", "text": "The hash is a cryptographic fingerprint of your original export file. Anyone can later re-hash the same file (using the free verify page or standard command-line tools) and confirm it is byte-for-byte identical to the file used to prepare the exhibit. It proves the file hasn't changed; it does not by itself prove who wrote the messages." }
       }
@@ -164,6 +169,7 @@
           <div><strong>Family court</strong> Custody, divorce and support matters where message history tells the story.</div>
           <div><strong>Small claims</strong> Agreements, payments and promises made over text.</div>
           <div><strong>Landlord / tenant</strong> Repair requests, notices and disputes documented in messages.</div>
+          <div><strong>Fraud &amp; scam victims</strong> Document the scammer's messages for police, the FTC/IC3 and your bank. <a href="scam-evidence.html">How to do it →</a></div>
           <div><strong>Attorneys &amp; paralegals</strong> Fast, consistent exhibit prep without per-seat software costs.</div>
         </div>
       </section>
@@ -202,6 +208,11 @@
         </details>
 
         <details class="faq">
+          <summary>Can I use this for a police report or fraud complaint instead of court?</summary>
+          <p>Yes. The same hash-sealed, numbered PDF works for a police report, an <a href="https://www.ic3.gov" rel="noopener">IC3</a> or FTC complaint, or a bank dispute — skip the declaration if you don't need it. If you've been scammed, see our step-by-step <a href="scam-evidence.html">scam evidence guide</a>, and our companion site <a href="https://scamkit.com" rel="noopener">ScamKit.com</a> for checking suspicious links and recovery steps.</p>
+        </details>
+
+        <details class="faq">
           <summary>What does the SHA-256 hash actually prove?</summary>
           <p>It's a cryptographic fingerprint of your original export file. Anyone can re-hash the same file later — with our <a href="verify.html">verify page</a> or standard command-line tools — and confirm it is byte-for-byte identical to the file used to prepare the exhibit. It proves the file hasn't been altered since hashing; it does not by itself prove who wrote the messages.</p>
         </details>
@@ -212,7 +223,7 @@
   <footer class="site-footer">
     <div class="wrap">
       <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
-      <p><a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p><a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
       <p>Built by the maker of <a href="https://scamkit.com">ScamKit.com</a>.</p>
     </div>
   </footer>

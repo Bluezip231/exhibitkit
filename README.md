@@ -33,6 +33,9 @@ index.html        Landing page (marketing + privacy promise, FAQ JSON-LD)
 app.html          The exhibit builder (4-step wizard)
 verify.html       Standalone SHA-256 verification tool
 guide.html        Per-platform export walkthroughs
+scam-evidence.html  Use-case guide for fraud victims (police / IC3 / FTC /
+                  bank disputes), cross-linked with ScamKit.com — the same
+                  maker's scam-checking and recovery site
 css/styles.css    Single stylesheet; design tokens at the top
 js/
   app.js          Builder orchestration + in-memory state (nothing persisted)

@@ -11,7 +11,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v2';
+const VERSION = 'exhibitkit-v3';
 
 const PRECACHE = [
   './',
@@ -19,6 +19,7 @@ const PRECACHE = [
   'app.html',
   'verify.html',
   'guide.html',
+  'scam-evidence.html',
   'css/styles.css',
   'js/app.js',
   'js/verify.js',
