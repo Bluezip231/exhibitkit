@@ -82,6 +82,14 @@ export const META_JSON_2 = JSON.stringify({
   ],
 });
 
+// --- Meta HTML export (the wrong format — should be detected and rejected
+//     with a "choose JSON" message rather than a generic error) ---
+export const META_HTML = '<html><head><base href="../../" />'
+  + '<style>.x{background:url(https://static.xx.fbcdn.net/rsrc.php/a.png)}</style>'
+  + '<title>Your messages</title></head><body><main>'
+  + '<h2><a href="your_facebook_activity/messages/inbox/craig_4516338905305069/message_1.html">'
+  + 'Craig</a></h2></main></body></html>';
+
 // --- CSV: quoted commas, embedded newline, escaped quotes, header row ---
 export const CSV_TEXT = [
   'Date,Sender,Message',

@@ -1,21 +1,37 @@
 /**
- * detect.js — format auto-detection from file name + the first ~2 KB of text.
+ * detect.js — format auto-detection from file name + a leading sample of text.
  *
- * Returns one of: 'whatsapp' | 'smsxml' | 'meta' | 'csv' | 'zip' | null
+ * Returns one of:
+ *   'whatsapp' | 'smsxml' | 'meta' | 'csv' | 'zip' | 'meta-html' | 'html' | null
  */
 
 import { WHATSAPP_IOS_RE, WHATSAPP_ANDROID_RE } from './whatsapp.js';
 
 /**
  * @param {string} fileName
- * @param {string} sampleText first ~2 KB of the decoded file
- * @returns {'whatsapp'|'smsxml'|'meta'|'csv'|'zip'|null}
+ * @param {string} sampleText leading text of the decoded file (≥ ~64 KB so an
+ *   HTML export's body markers are visible past its large inline stylesheet)
+ * @returns {'whatsapp'|'smsxml'|'meta'|'csv'|'zip'|'meta-html'|'html'|null}
  */
 export function detectFormat(fileName, sampleText) {
   const name = (fileName || '').toLowerCase();
   const sample = sampleText || '';
 
   if (name.endsWith('.zip')) return 'zip';
+
+  // HTML files are never directly supported. The most common case by far is a
+  // user who chose Meta's HTML export format instead of JSON, so single that
+  // out for a precise, actionable error.
+  if (name.endsWith('.html') || name.endsWith('.htm')) {
+    const low = sample.toLowerCase();
+    const looksMeta =
+      low.includes('your_facebook_activity/messages') ||
+      low.includes('your_instagram_activity/messages') ||
+      low.includes('/messages/inbox/') ||
+      low.includes('<title>your messages</title>') ||
+      (low.includes('fbcdn.net') && low.includes('message'));
+    return looksMeta ? 'meta-html' : 'html';
+  }
 
   if (name.endsWith('.xml') && (sample.includes('<smses') || sample.includes('<sms '))) {
     return 'smsxml';

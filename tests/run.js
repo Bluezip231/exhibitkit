@@ -19,7 +19,7 @@ import { makeSampleFile } from '../js/sample.js';
 import { parseWhatsApp as parseWhatsAppSample } from '../js/parsers/whatsapp.js';
 import {
   WHATSAPP_IOS, WHATSAPP_ANDROID, SMS_XML, META_JSON_1, META_JSON_2,
-  CSV_TEXT, makeSyntheticMessages,
+  META_HTML, CSV_TEXT, makeSyntheticMessages,
 } from './fixtures.js';
 
 const results = [];
@@ -67,6 +67,12 @@ test('detect: tabular .txt falls back to CSV', () => {
 });
 test('detect: zip flagged', () => {
   assertEqual(detectFormat('facebook-export.zip', 'PK...'), 'zip');
+});
+test('detect: Meta HTML export flagged as meta-html (chose HTML, not JSON)', () => {
+  assertEqual(detectFormat('your_messages.html', META_HTML), 'meta-html');
+});
+test('detect: a non-Meta HTML file flagged as html', () => {
+  assertEqual(detectFormat('notes.html', '<html><body><p>hi</p></body></html>'), 'html');
 });
 test('detect: unknown returns null', () => {
   assertEqual(detectFormat('notes.docx', 'hello'), null);

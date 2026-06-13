@@ -163,10 +163,18 @@ async function handleFiles(files) {
     return showError('That file appears to be empty. Re-export your messages and try again.');
   }
 
-  const format = detectFormat(sources[0].name, sources[0].text.slice(0, 2048));
+  // A generous sample so an HTML export's body markers are visible past its
+  // large inline stylesheet (Meta's exports put ~15 KB of CSS before the body).
+  const format = detectFormat(sources[0].name, sources[0].text.slice(0, 65536));
 
   if (format === 'zip') {
     return showError('That is a .zip archive. Unzip it first, then upload the message_1.json file inside the conversation folder (Messenger/Instagram exports) — see the export guide for the exact path.', true);
+  }
+  if (format === 'meta-html') {
+    return showError('This is the HTML version of a Facebook/Messenger/Instagram export, which ExhibitKit can’t read. Re-run Meta’s "Export your information", set the Format to JSON (not HTML), and upload the message_1.json file from the conversation folder.', true);
+  }
+  if (format === 'html') {
+    return showError('HTML files aren’t supported. If this came from a Facebook/Messenger export, re-run the export and choose the JSON format, then upload the message_1.json file.', true);
   }
   if (!format) {
     return showError(`We could not recognize this file. Supported formats: ${SUPPORTED_FORMATS_TEXT}.`, true);
