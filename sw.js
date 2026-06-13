@@ -11,7 +11,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v5';
+const VERSION = 'exhibitkit-v6';
 
 // Same-origin assets: must all cache for the app to work offline, so these
 // are cached atomically and a failure fails the install (retried next visit).
@@ -37,6 +37,7 @@ const PRECACHE_LOCAL = [
   'js/redact.js',
   'js/sample.js',
   'js/pwa.js',
+  'js/contact.js',
   'js/parsers/detect.js',
   'js/parsers/whatsapp.js',
   'js/parsers/smsxml.js',
