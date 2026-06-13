@@ -91,19 +91,22 @@
     <section class="guide-section" id="meta" aria-labelledby="h-meta">
       <h2 id="h-meta">Facebook Messenger &amp; Instagram DMs <span class="difficulty medium">Free, but not instant</span></h2>
       <p>Meta lets you download your message history on any phone or computer through its official export tool. It works well — but Meta prepares the file and notifies you when it's ready, which can take anywhere from <strong>a few minutes to a couple of days</strong>. Request it well before any court deadline.</p>
+      <p class="hint">Meta moves these buttons around and renames them. If a label below doesn't match, look for the closest wording — the steps are the same. As of 2026 the entry point is called <span class="ui-name">Export your information</span> (it used to be <span class="ui-name">Download your information</span>).</p>
       <ol>
         <li>Open <span class="ui-name">Settings</span> → <span class="ui-name">Accounts Center</span> (in Facebook, Messenger or Instagram).</li>
-        <li>Go to <span class="ui-name">Your information and permissions</span> → <span class="ui-name">Download your information</span>.</li>
-        <li>Choose <span class="ui-name">Download or transfer information</span>, then pick the profile (Messenger or Instagram).</li>
-        <li>Choose <span class="ui-name">Some of your information</span> and select only <span class="ui-name">Messages</span>.</li>
-        <li><strong>Critical:</strong> set the format to <strong>JSON</strong>. The HTML format will NOT work with ExhibitKit.</li>
-        <li>Pick a date range that covers what you need — a narrower range keeps the file small.</li>
-        <li>Submit the request. Meta will notify you when the download is ready.</li>
+        <li>Tap <span class="ui-name">Your information and permissions</span>.</li>
+        <li>Tap <span class="ui-name">Export your information</span> — the first option, with the little box-and-arrow icon. (Older app versions call this <span class="ui-name">Download your information</span>.)</li>
+        <li>Tap <span class="ui-name">Create export</span> (or <span class="ui-name">+ Create export</span>), then pick the profile you want — Messenger, Instagram or Facebook.</li>
+        <li>Tap <span class="ui-name">Customize information</span> (older versions: <span class="ui-name">Some of your information</span>) and select only <span class="ui-name">Messages</span>. Tap done/save.</li>
+        <li>For the destination, choose <span class="ui-name">Download to device</span> (not "Transfer to a destination").</li>
+        <li><strong>Critical:</strong> set <span class="ui-name">Format</span> to <strong>JSON</strong>. The HTML format will NOT work with ExhibitKit.</li>
+        <li>Set <span class="ui-name">Date range</span> to cover what you need — a narrower range keeps the file small.</li>
+        <li>Tap <span class="ui-name">Create export</span> / <span class="ui-name">Start export</span>. Meta will notify you when the file is ready to download.</li>
         <li>Download the <code>.zip</code> file and <strong>unzip it</strong> (on a phone, your Files app can usually do this; on a computer, double-click it).</li>
         <li>Inside, find your conversation's folder — the path looks like <code>your_facebook_activity/messages/inbox/jane_abc123/message_1.json</code> (Instagram is similar under <code>messages/inbox/</code>).</li>
         <li>Upload the <code>message_1.json</code> file in the <a href="app.html">builder</a>. Long conversations are split into <code>message_2.json</code>, <code>message_3.json</code>, etc. — select them all at once and ExhibitKit merges them in order, listing each file's hash on the certification page.</li>
       </ol>
-      <p class="hint">End-to-end encrypted Messenger chats are downloaded through the secure storage flow inside the same Download Your Information tool.</p>
+      <p class="hint">End-to-end encrypted Messenger chats are downloaded through the secure storage flow inside the same Export Your Information tool.</p>
     </section>
 
     <!-- 4. iPhone -->
