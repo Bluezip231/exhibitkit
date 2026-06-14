@@ -1,5 +1,5 @@
 /**
- * whatsapp.js — parser for WhatsApp's built-in "Export chat" .txt files.
+ * whatsapp.js - parser for WhatsApp's built-in "Export chat" .txt files.
  *
  * Two main line formats exist:
  *   iOS:     [6/12/26, 3:45:12 PM] Isaiah: Message text
@@ -138,7 +138,7 @@ export function parseWhatsApp(text, opts = {}) {
         isSystem,
       };
     } else if (current) {
-      // Continuation of the previous message body — preserved verbatim.
+      // Continuation of the previous message body - preserved verbatim.
       current.body += '\n' + line;
     }
     // Lines before the first match are ignored (export preamble).

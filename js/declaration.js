@@ -1,5 +1,5 @@
 /**
- * declaration.js — assembles the Declaration / certification page text from
+ * declaration.js - assembles the Declaration / certification page text from
  * the case-details form. Plain, jurisdiction-neutral template.
  *
  * The output is data only (title + numbered paragraphs + footer); pdf.js

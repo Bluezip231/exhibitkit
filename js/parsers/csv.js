@@ -1,5 +1,5 @@
 /**
- * csv.js — RFC 4180 CSV parser (state machine, not regex split) plus
+ * csv.js - RFC 4180 CSV parser (state machine, not regex split) plus
  * column-mapping into canonical messages.
  *
  * Handles: quoted fields containing commas and newlines, escaped quotes
@@ -9,7 +9,7 @@
 /**
  * Parse CSV text into rows of string fields.
  * @param {string} text
- * @param {string} [delimiter] ',' '\t' or ';' — auto-detected when omitted
+ * @param {string} [delimiter] ',' '\t' or ';' - auto-detected when omitted
  * @returns {string[][]}
  */
 export function parseCsv(text, delimiter) {

@@ -1,5 +1,5 @@
 /**
- * detect.js — format auto-detection from file name + a leading sample of text.
+ * detect.js - format auto-detection from file name + a leading sample of text.
  *
  * Returns one of:
  *   'whatsapp' | 'smsxml' | 'meta' | 'csv' | 'zip' | 'meta-html' | 'html' | null

@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Isaiah Shawver">
-  <title>Exhibit Builder — ExhibitKit</title>
-  <meta name="description" content="Turn a WhatsApp, SMS, Messenger or CSV message export into a court-ready PDF exhibit with a SHA-256 integrity hash. 100% in your browser — nothing is uploaded.">
+  <title>Exhibit Builder - ExhibitKit</title>
+  <meta name="description" content="Turn a WhatsApp, SMS, Messenger or CSV message export into a court-ready PDF exhibit with a SHA-256 integrity hash. 100% in your browser - nothing is uploaded.">
   <link rel="canonical" href="https://exhibitkit.com/app.html">
-  <meta property="og:title" content="Exhibit Builder — ExhibitKit">
+  <meta property="og:title" content="Exhibit Builder - ExhibitKit">
   <meta property="og:description" content="Convert message exports into court-ready PDF exhibits, entirely in your browser.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://exhibitkit.com/app.html">
@@ -37,7 +37,7 @@
 
   <main class="wrap" id="main">
     <h1>Exhibit builder</h1>
-    <p>Build a court-ready PDF exhibit from your message export. Everything below happens in your browser — your messages are never uploaded, and refreshing this page erases them.</p>
+    <p>Build a court-ready PDF exhibit from your message export. Everything below happens in your browser - your messages are never uploaded, and refreshing this page erases them.</p>
 
     <div id="crypto-error" class="notice-block" hidden>
       <strong>This page needs a secure connection.</strong>
@@ -62,7 +62,7 @@
       </div>
       <input type="file" id="file-input" class="visually-hidden" accept=".txt,.csv,.xml,.json" multiple aria-hidden="true" tabindex="-1">
 
-      <p class="dz-alt">No export handy yet? <button type="button" class="btn-link" id="sample-btn">Try the whole flow with a fictional sample chat</button> — it runs through the exact same local pipeline.</p>
+      <p class="dz-alt">No export handy yet? <button type="button" class="btn-link" id="sample-btn">Try the whole flow with a fictional sample chat</button> - it runs through the exact same local pipeline.</p>
 
       <div id="upload-error" class="notice notice-error" role="alert" hidden></div>
       <div id="upload-warning" class="notice" hidden></div>
@@ -116,7 +116,7 @@
     <!-- Step 2 -->
     <section class="wizard-section" id="step-select" aria-labelledby="h-step2" hidden>
       <h2 id="h-step2"><span class="step-num">Step 2</span> Select &amp; redact</h2>
-      <p>Every message is included by default — untick any you want to leave out. To hide sensitive text (an account number, a child's name), use <strong>Redact</strong>: the text is genuinely removed before the PDF is created, not covered with a black box, so it cannot be recovered from the file.</p>
+      <p>Every message is included by default - untick any you want to leave out. To hide sensitive text (an account number, a child's name), use <strong>Redact</strong>: the text is genuinely removed before the PDF is created, not covered with a black box, so it cannot be recovered from the file.</p>
 
       <div class="list-toolbar">
         <input type="search" id="filter-search" class="span-2" placeholder="Search messages…" aria-label="Search messages">
@@ -150,7 +150,7 @@
     <!-- Step 3 -->
     <section class="wizard-section" id="step-case" aria-labelledby="h-step3" hidden>
       <h2 id="h-step3"><span class="step-num">Step 3</span> Case details</h2>
-      <p>Everything here is optional except the <strong>exhibit label</strong> and <strong>your name</strong>. Nothing is saved anywhere — refreshing the page clears this form along with your messages.</p>
+      <p>Everything here is optional except the <strong>exhibit label</strong> and <strong>your name</strong>. Nothing is saved anywhere - refreshing the page clears this form along with your messages.</p>
 
       <form id="case-form" autocomplete="off">
         <div class="field">
@@ -201,13 +201,13 @@
     <!-- Step 4 -->
     <section class="wizard-section" id="step-generate" aria-labelledby="h-step4" hidden>
       <h2 id="h-step4"><span class="step-num">Step 4</span> Generate</h2>
-      <p>Your PDF will contain a cover page with the Evidence Seal, the selected messages with Bates numbers, and a declaration template — with the source file's SHA-256 hash printed on every page footer.</p>
+      <p>Your PDF will contain a cover page with the Evidence Seal, the selected messages with Bates numbers, and a declaration template - with the source file's SHA-256 hash printed on every page footer.</p>
 
       <div id="charset-notice" class="notice" hidden>
         <p id="charset-text"></p>
         <div class="checkbox-row">
           <input type="checkbox" id="opt-extfont">
-          <label for="opt-extfont">Embed an extended font (DejaVu Sans, one-time ~740&nbsp;KB download) so accented, Greek and Cyrillic text prints natively. Emoji and right-to-left scripts still become placeholders — the PDF engine cannot lay them out, and printing them wrong would be worse in an evidence document.</label>
+          <label for="opt-extfont">Embed an extended font (DejaVu Sans, one-time ~740&nbsp;KB download) so accented, Greek and Cyrillic text prints natively. Emoji and right-to-left scripts still become placeholders - the PDF engine cannot lay them out, and printing them wrong would be worse in an evidence document.</label>
         </div>
       </div>
       <div id="gen-error" class="notice notice-error" role="alert" hidden></div>
@@ -232,7 +232,7 @@
       <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
       <p><a href="index.html">Home</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
       <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
-      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> — free scam &amp; link checking, and recovery steps if you've been hit.</p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
     </div>
   </footer>
 

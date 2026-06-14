@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ExhibitKit — design system
+   ExhibitKit - design system
    Subject grounding: court filing × forensic lab. Paper, ink, precision.
    ========================================================================== */
 
@@ -303,7 +303,7 @@ input[type="checkbox"] {
 .field-error { border-color: var(--seal) !important; }
 
 /* --------------------------------------------------------------------------
-   The Evidence Seal — signature component
+   The Evidence Seal - signature component
    -------------------------------------------------------------------------- */
 
 .evidence-seal {

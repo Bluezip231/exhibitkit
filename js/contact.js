@@ -1,5 +1,5 @@
 /**
- * contact.js — submit the Netlify contact form via same-origin fetch.
+ * contact.js - submit the Netlify contact form via same-origin fetch.
  *
  * The site keeps a strict `form-action 'none'` Content-Security-Policy on
  * every page (including the evidence-handling builder/verify pages), so a
@@ -38,7 +38,7 @@ if (form) {
         status.hidden = false;
         status.className = 'notice notice-error';
         status.textContent =
-          'Sorry — that didn’t send. Please try again, or reach out on X (@ShawverTech) or GitHub.';
+          'Sorry - that didn’t send. Please try again, or reach out on X (@ShawverTech) or GitHub.';
       }
     }
   });
