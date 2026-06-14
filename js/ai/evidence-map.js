@@ -176,11 +176,18 @@ const SHORT_AGREEMENT = [
   'that works', 'i agree', 'no problem', 'sounds good', 'will do', 'cool',
 ];
 
-const RE_MONEY = /\$\s?\d|\b(pay|paid|pays|paying|owe|owed|owes|repay|repaid|rent|refund|loan|venmo|cashapp|zelle|paypal|dollars?|deposit|back)\b/i;
+const RE_MONEY = /\$\s?\d|\b(pay|paid|pays|paying|owe|owed|owes|repay|repaid|rent|refund|loan|venmo|cashapp|zelle|paypal|dollars?|deposit)\b/i;
 const RE_REPAIR = /\b(repair|repaired|repairs|fix|fixed|fixing|broken|break|leak|leaking|landlord|maintenance|plumber|heater|furnace|mold|mould|appliance|sink|toilet|outage)\b/i;
+// Broad threat set used only to test for *presence* in the gap analysis (per
+// spec): bare "stop"/"hurt"/"scared" are too ambiguous to assert as a reason.
 const RE_THREAT = /\b(threat|threats|threaten|threatened|threatening|hurt|kill|harm|scared|afraid|harass|harassment|stop|leave me alone|or else|regret|watch out)\b/i;
+// Stricter set used for the per-message "may mention threat" reason label, to
+// avoid alarming false positives on benign words like "stop by" or "bus stop".
+const RE_THREAT_REASON = /\b(threat|threats|threaten|threatened|threatening|kill|harm|harass|harassment|leave me alone|or else|watch out)\b/i;
 const RE_AGREEMENT = /\b(agree|agreed|promise|promised|deal|confirm|confirmed|i'?ll|i will|we will|will pay|pay you back|sounds good)\b/i;
-const RE_DATETIME = /\b\d{1,2}:\d{2}\b|\b\d{1,2}[/.\-]\d{1,2}\b|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|tonight|noon|midnight|[ap]\.?m\.?)\b/i;
+// Note: am/pm only counts when attached to a number (e.g. "3pm", "11 a.m.") so
+// the ordinary verb "am" in "I am here" is not mistaken for a time.
+const RE_DATETIME = /\b\d{1,2}:\d{2}\b|\b\d{1,2}[/.\-]\d{1,2}\b|\b\d{1,2}\s?[ap]\.?m\.?\b|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|tonight|noon|midnight)\b/i;
 
 const CLAIM_MONEY = /\b(pay|money|rent|owe|owed|refund|loan|repay|paid|owes)\b/i;
 const CLAIM_THREAT = /\b(threat|threats|threaten|threatened|scared|hurt|harass|harassment|afraid)\b/i;
@@ -228,24 +235,41 @@ export function reasonLabels(message, claim, score) {
   if (RE_DATETIME.test(body)) reasons.push('Mentions date/time');
   if (RE_MONEY.test(body)) reasons.push('Mentions money/amount');
   if (RE_REPAIR.test(body)) reasons.push('Mentions repair/request');
-  if (RE_THREAT.test(body)) reasons.push('Mentions threat/harassment language');
+  if (RE_THREAT_REASON.test(body)) reasons.push('Mentions threat/harassment language');
   if (RE_AGREEMENT.test(body)) reasons.push('Mentions agreement/promise');
   if (isShortReply(body)) reasons.push('Short reply, review surrounding context');
 
   return reasons;
 }
 
-/** Why a message needs context (returns a list of plain-English reasons). */
-export function needsContextReasons(message, score) {
-  const reasons = [];
-  const body = message.body || '';
-  if (isShortReply(body)) reasons.push('Short reply');
-  if (body.trim().length < SHORT_BODY_CHARS && score >= POSSIBLE_THRESHOLD) {
-    if (!reasons.includes('Short reply')) reasons.push('Short reply');
+/**
+ * True when a message's meaning depends on its neighbours - a short reply or a
+ * very short body. This (not missing metadata) is what routes a message into
+ * the "Needs context" group, so a substantive, clearly-related message is never
+ * demoted just because the paste lacked timestamps.
+ */
+export function isContextDependent(message, score) {
+  const body = (message.body || '').trim();
+  if (isShortReply(body)) return true;
+  return body.length < SHORT_BODY_CHARS && score >= POSSIBLE_THRESHOLD;
+}
+
+/** Metadata flags shown as chips on a result card in any group. */
+export function metadataFlags(message) {
+  const flags = [];
+  if (!message.sender) flags.push('Missing sender');
+  if (!message.rawTimestamp) flags.push('Missing timestamp');
+  return flags;
+}
+
+/** The "why" list shown for an item in the Needs context group. */
+export function contextWhys(message, contextDependent) {
+  const whys = [];
+  if (contextDependent) {
+    whys.push('Short reply');
+    whys.push('Surrounding messages may be needed');
   }
-  if (!message.sender) reasons.push('Missing sender');
-  if (!message.rawTimestamp) reasons.push('Missing timestamp');
-  return reasons;
+  return whys.concat(metadataFlags(message));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -266,14 +290,19 @@ export function buildEvidenceMap(messages, claimVec, msgVecs, claim) {
   const scored = messages.map((message, i) => {
     const score = cosineSimilarity(claimVec, msgVecs[i] || []);
     const label = scoreLabel(score);
-    const ctx = needsContextReasons(message, score);
+    const contextDependent = isContextDependent(message, score);
+    // Only route into "Needs context" when the message is both context-dependent
+    // AND at least possibly related - an unrelated short reply belongs in low
+    // match, and a substantive related message stays in its relevance group.
+    const needsContext = contextDependent && score >= POSSIBLE_THRESHOLD;
     return {
       message,
       score,
-      percent: Math.round(score * 100),
+      percent: Math.max(0, Math.round(score * 100)), // never show a negative %
       label,
-      needsContext: ctx.length > 0 && (label !== 'low' || isShortReply(message.body)),
-      contextReasons: ctx,
+      needsContext,
+      contextReasons: contextWhys(message, contextDependent),
+      flags: metadataFlags(message),
       reasons: reasonLabels(message, claim, score),
     };
   }).sort((a, b) => b.score - a.score);

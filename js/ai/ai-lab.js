@@ -122,11 +122,25 @@ function renderResultItem(item) {
   // Message body - textContent only (never innerHTML), preserves line breaks via CSS.
   card.appendChild(el('p', 'ai-result-body', item.message.body));
 
-  const reasons = item.needsContext ? item.contextReasons : item.reasons;
-  if (reasons && reasons.length) {
-    const wrap = el('p', 'ai-result-reasons');
-    reasons.forEach((r) => wrap.appendChild(el('span', 'ai-reason', r)));
-    card.appendChild(wrap);
+  if (item.needsContext) {
+    // In the Needs context group, explain the "why" (short reply, missing data).
+    if (item.contextReasons && item.contextReasons.length) {
+      const wrap = el('p', 'ai-result-reasons');
+      item.contextReasons.forEach((r) => wrap.appendChild(el('span', 'ai-reason ai-flag', r)));
+      card.appendChild(wrap);
+    }
+  } else {
+    // Elsewhere, show semantic reasons plus any metadata flags (e.g. a strong
+    // match that nonetheless lacks a timestamp still surfaces that gap).
+    const chips = [
+      ...(item.reasons || []).map((r) => ({ text: r, flag: false })),
+      ...(item.flags || []).map((r) => ({ text: r, flag: true })),
+    ];
+    if (chips.length) {
+      const wrap = el('p', 'ai-result-reasons');
+      chips.forEach((c) => wrap.appendChild(el('span', c.flag ? 'ai-reason ai-flag' : 'ai-reason', c.text)));
+      card.appendChild(wrap);
+    }
   }
   return card;
 }
@@ -166,16 +180,33 @@ function renderChecklistGroup(title, items, className) {
   return section;
 }
 
+function renderOverview(counts) {
+  const wrap = el('div', 'ai-overview');
+  const chip = (n, label, cls) => {
+    const c = el('span', `ai-count ${cls}`);
+    c.appendChild(el('strong', null, String(n)));
+    c.appendChild(document.createTextNode(' ' + label));
+    return c;
+  };
+  wrap.appendChild(chip(counts.strong, 'strongly related', 'ai-count-strong'));
+  wrap.appendChild(chip(counts.possible, 'possibly related', 'ai-count-possible'));
+  wrap.appendChild(chip(counts.needsContext, 'needs context', 'ai-count-context'));
+  wrap.appendChild(chip(counts.low, 'low match', 'ai-count-low'));
+  return wrap;
+}
+
 function renderResult(result) {
   els.summary.textContent = result.summary;
   els.groups.replaceChildren();
+  els.groups.appendChild(renderOverview(result.counts));
 
   const blocks = [
     renderGroup('Strongly related messages', result.groups.strong),
     renderGroup('Possibly related messages', result.groups.possible),
     renderGroup('Needs context', result.groups.needsContext, {
-      note: 'These may relate to your claim but depend on surrounding messages, '
-        + 'a missing sender, or a missing timestamp. Review the originals.',
+      note: 'These look related but are short replies or very brief messages whose '
+        + 'meaning depends on the messages around them. Include the surrounding '
+        + 'messages and review the originals.',
     }),
     renderChecklistGroup('Possible gaps to review', result.gaps, 'ai-gaps'),
     renderChecklistGroup('Human review checklist', result.checklist, 'ai-checklist'),
@@ -227,10 +258,10 @@ async function run() {
   setRunning(true);
 
   try {
-    // 1. Load model
-    setStatus('Loading local AI model. The first run may take a little while because the local AI model has to download to your browser.');
-    setProgress(null);
+    // 1. Load model (only the first run downloads it; afterwards it is reused).
     if (!embedder) {
+      setStatus('Loading local AI model. The first run may take a little while because the local AI model has to download to your browser.');
+      setProgress(null);
       embedder = await loadEmbedder((p) => {
         if (p && p.status === 'progress' && typeof p.progress === 'number') {
           setStatus(`Downloading local AI model: ${Math.round(p.progress)}% (${p.file || ''})`);

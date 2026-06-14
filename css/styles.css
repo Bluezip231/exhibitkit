@@ -1004,6 +1004,34 @@ kbd, .ui-name {
   padding: 0.05rem 0.4rem;
 }
 
+/* Metadata gap chips (missing sender/timestamp, short reply) read as caution. */
+.ai-reason.ai-flag {
+  color: var(--seal);
+  border-color: var(--seal);
+  background: var(--seal-tint);
+}
+
+/* Counts overview row */
+.ai-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+}
+
+.ai-count {
+  font-size: 0.82rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  background: var(--paper-raised);
+}
+.ai-count strong { font-family: var(--font-mono); }
+.ai-count-strong { border-left: 3px solid var(--verify-green); }
+.ai-count-possible { border-left: 3px solid var(--ink); }
+.ai-count-context { border-left: 3px solid var(--seal); }
+.ai-count-low { border-left: 3px solid var(--rule); }
+
 /* Score badges - never color-only: each carries its own text label. */
 .ai-badge {
   font-family: var(--font-mono);

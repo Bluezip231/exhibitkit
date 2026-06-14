@@ -153,6 +153,19 @@ function eq(name, actual, expected) {
   check('map: summary mentions strongly related', result.summary.includes('strongly related'));
   check('map: checklist always present', result.checklist.length === 7);
   check('map: scored sorted desc', result.scored[0].score >= result.scored[1].score);
+
+  // A substantive, strongly-related message that merely lacks a timestamp must
+  // STAY in "strong" (not get demoted to Needs context) but still flag the gap.
+  const noTs = parseMessages('Alex: I will absolutely pay you back the full five hundred dollars on Friday');
+  const noTsResult = buildEvidenceMap(noTs, [1, 0], [[1, 0]], 'they agreed to pay me back');
+  eq('map: substantive match missing timestamp stays strong', noTsResult.counts.strong, 1);
+  eq('map: substantive match not in needs-context', noTsResult.counts.needsContext, 0);
+  check('map: missing-timestamp flag present on the item',
+    noTsResult.scored[0].flags.includes('Missing timestamp'));
+
+  // Negative similarity must never render as a negative percentage.
+  const neg = buildEvidenceMap(parseMessages('A: x'), [1, 0], [[-1, 0]], 'claim');
+  check('map: percent clamped to >= 0', neg.scored[0].percent >= 0);
 })();
 
 /* ------------------------------- gap rules ------------------------------- */
