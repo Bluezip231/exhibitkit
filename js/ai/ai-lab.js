@@ -305,17 +305,29 @@ async function run() {
     } else {
       console.error(err);
       setStatus('');
-      // The local AI model is ~23 MB and runs in WebAssembly. iPhones and iPads
-      // have a strict per-tab memory budget and older iOS Safari versions block
-      // the WASM runtime, so this page often can't load the model on iOS even
-      // though everything else on ExhibitKit works there. Be honest about that.
-      showError(isIOS()
-        ? 'The local AI model could not load on this iPhone/iPad. iOS Safari limits how much memory a page can use, '
-          + 'so the AI Review Lab works best on a desktop browser (Chrome, Edge, or Firefox). '
-          + 'ExhibitKit’s normal search and exhibit tools still work here on your phone.'
-        : 'Local AI could not load in this browser. This page needs WebAssembly and a few tens of megabytes of memory; '
-          + 'a privacy/ad-blocking extension or a restricted network can also block the model download. '
-          + 'Try a recent desktop Chrome, Edge, or Firefox. You can still use ExhibitKit’s normal search and exhibit tools.');
+      // Surface the actual exception so the user can self-diagnose without DevTools.
+      const detail = err && err.message ? ' (' + String(err.message).slice(0, 160) + ')' : '';
+      let msg;
+      if (isIOS()) {
+        msg = 'The local AI model could not load on this iPhone or iPad. iOS Safari limits how much '
+          + 'memory a page can use, so the AI Review Lab works best on a desktop browser '
+          + '(Chrome, Edge, or Firefox). The normal ExhibitKit search and exhibit tools still work here on your phone.';
+      } else if (/fetch|import|network|load/i.test((err && err.message) || '')) {
+        // Network-level failure: an extension, Edge Tracking Prevention, a VPN, or a firewall
+        // blocked the CDN request. Tracking Prevention (Balanced or Strict) and Enhanced Security
+        // Mode are the most common culprits, so point the user at the exact setting.
+        msg = 'The AI model could not be downloaded' + detail + '. '
+          + 'In Microsoft Edge, open Settings, Privacy, Tracking Prevention and add this site to '
+          + 'Exceptions, or set tracking prevention to Basic. A browser extension or VPN can also '
+          + 'block the model download. The normal ExhibitKit search and exhibit tools still work.';
+      } else {
+        msg = 'Local AI could not load in this browser' + detail + '. '
+          + 'This page needs WebAssembly support and about 30 MB of available memory. '
+          + 'In Microsoft Edge, Enhanced Security Mode can block WebAssembly: open Settings, Privacy, '
+          + 'Security and turn off Enhanced Security for this site. The normal ExhibitKit search and '
+          + 'exhibit tools still work.';
+      }
+      showError(msg);
     }
   } finally {
     setRunning(false);
