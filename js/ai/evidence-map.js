@@ -514,7 +514,33 @@ export async function loadEmbedder(onProgress) {
     env.backends.onnx.wasm.numThreads = 1;
   }
 
-  return pipeline('feature-extraction', MODEL_ID, { progress_callback: onProgress });
+  // Pin the smallest quantized weights and the WASM backend explicitly. On
+  // iOS Safari (a strict per-tab memory budget) this avoids the runtime
+  // picking a heavier default dtype, and it silences the "dtype not specified"
+  // warning. q8 is the smallest published variant of all-MiniLM-L6-v2.
+  return pipeline('feature-extraction', MODEL_ID, {
+    progress_callback: onProgress,
+    dtype: 'q8',
+    device: 'wasm',
+  });
+}
+
+/**
+ * Best-effort detection of iOS Safari (iPhone/iPad), including iPadOS which
+ * reports as desktop Safari but exposes touch points. Used only to tailor the
+ * failure message - it never changes what runs. WebAssembly support for the
+ * 'wasm-unsafe-eval' CSP keyword only landed in Safari 16.4, and the model
+ * (~23 MB) can exceed older devices' per-tab memory budget, so a clear,
+ * honest fallback message matters most here.
+ *
+ * @returns {boolean}
+ */
+export function isIOS() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const iDevice = /iPad|iPhone|iPod/.test(ua);
+  const iPadOS = navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1;
+  return iDevice || iPadOS;
 }
 
 /**

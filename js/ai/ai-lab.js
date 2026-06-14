@@ -23,6 +23,7 @@ import {
   embedOne,
   CancelledError,
   MAX_MESSAGES,
+  isIOS,
 } from './evidence-map.js';
 
 const $ = (id) => document.getElementById(id);
@@ -304,7 +305,17 @@ async function run() {
     } else {
       console.error(err);
       setStatus('');
-      showError('Local AI could not load in this browser. You can still use ExhibitKit’s normal search and exhibit tools.');
+      // The local AI model is ~23 MB and runs in WebAssembly. iPhones and iPads
+      // have a strict per-tab memory budget and older iOS Safari versions block
+      // the WASM runtime, so this page often can't load the model on iOS even
+      // though everything else on ExhibitKit works there. Be honest about that.
+      showError(isIOS()
+        ? 'The local AI model could not load on this iPhone/iPad. iOS Safari limits how much memory a page can use, '
+          + 'so the AI Review Lab works best on a desktop browser (Chrome, Edge, or Firefox). '
+          + 'ExhibitKit’s normal search and exhibit tools still work here on your phone.'
+        : 'Local AI could not load in this browser. This page needs WebAssembly and a few tens of megabytes of memory; '
+          + 'a privacy/ad-blocking extension or a restricted network can also block the model download. '
+          + 'Try a recent desktop Chrome, Edge, or Firefox. You can still use ExhibitKit’s normal search and exhibit tools.');
     }
   } finally {
     setRunning(false);
@@ -346,9 +357,25 @@ function downloadMemo() {
 
 /* -------------------------------- wiring --------------------------------- */
 
+// Proactive heads-up on iPhone/iPad: the model is large and iOS Safari caps
+// per-tab memory, so warn before the user waits through a download that may
+// fail. Shown once at load, never blocks use - they can still try.
+function maybeShowIOSNotice() {
+  if (!isIOS() || !els.generate) return;
+  const note = el('div', 'notice ai-ios-note');
+  note.setAttribute('role', 'note');
+  note.appendChild(el('strong', null, 'On iPhone or iPad? '));
+  note.appendChild(document.createTextNode(
+    'The AI Review Lab downloads a ~23 MB AI model and runs it in your browser. '
+    + 'iOS Safari limits page memory, so it may not load here. For best results, open this '
+    + 'page on a desktop browser (Chrome, Edge, or Firefox). The rest of ExhibitKit works fine on your phone.'));
+  els.generate.closest('.ai-input-card')?.insertBefore(note, els.generate.closest('.list-actions'));
+}
+
 if (els.generate) {
   els.generate.addEventListener('click', run);
   els.cancel.addEventListener('click', () => { cancelled = true; });
   els.copyMemo.addEventListener('click', copyMemo);
   els.downloadMemo.addEventListener('click', downloadMemo);
+  maybeShowIOSNotice();
 }
