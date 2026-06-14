@@ -50,6 +50,11 @@
       },
       {
         "@type": "Question",
+        "name": "Does ExhibitKit use AI on my evidence?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The official exhibit builder does not use AI. The optional AI Review Lab uses local browser AI to help organize messages by relevance. It does not provide legal advice, decide admissibility, or change the exhibit PDF." }
+      },
+      {
+        "@type": "Question",
         "name": "Will courts accept exhibits made with ExhibitKit?",
         "acceptedAnswer": { "@type": "Answer", "text": "Admissibility depends on your court's rules and on authentication - usually your testimony that the messages are genuine. ExhibitKit helps with clean formatting and tamper-evidence (a SHA-256 hash of your original export on every page), which supports authentication, but no tool can guarantee a court will admit an exhibit." }
       },
@@ -97,6 +102,7 @@
         <a href="app.html">Builder</a>
         <a href="verify.html">Verify a hash</a>
         <a href="guide.html">Export guide</a>
+        <a href="ai-lab.html">AI Review Lab</a>
       </nav>
     </div>
   </header>
@@ -183,8 +189,20 @@
         </div>
       </section>
 
+      <section aria-labelledby="h-ai">
+        <h2 id="h-ai">Optional AI Review Lab</h2>
+        <p>Use local AI to find messages related to a claim, spot possible gaps, and create a review checklist. The official exhibit builder stays AI-free.</p>
+        <p>It runs entirely in your browser - your message text is not uploaded to any AI API - and it only organizes text by possible relevance. It does not give legal advice, decide admissibility, or change the exhibit PDF.</p>
+        <p><a class="btn btn-secondary" href="ai-lab.html">Open AI Review Lab</a></p>
+      </section>
+
       <section aria-labelledby="h-faq">
         <h2 id="h-faq">Frequently asked questions</h2>
+
+        <details class="faq">
+          <summary>Does ExhibitKit use AI on my evidence?</summary>
+          <p>The official exhibit builder does not use AI. The optional <a href="ai-lab.html">AI Review Lab</a> uses local browser AI to help organize messages by relevance. It does not provide legal advice, decide admissibility, or change the exhibit PDF.</p>
+        </details>
 
         <details class="faq">
           <summary>Is ExhibitKit really private?</summary>

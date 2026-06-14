@@ -40,6 +40,7 @@ about.html        What it is / who built it / design principles
 contact.html      Netlify contact form (honeypot, no JS) + contact-success.html
 privacy.html      Plain-English privacy policy
 support.html      Free ways to help + optional donation
+ai-lab.html       Optional AI Review Lab (local-AI relevance mapping; AI-free builder)
 404.html          Branded not-found page (served by Netlify)
 css/styles.css    Single stylesheet; design tokens at the top
 js/
@@ -48,6 +49,9 @@ js/
   pdf.js          Exhibit PDF generation (jsPDF), WinAnsi sanitization
   declaration.js  Declaration/certification page text assembly
   verify.js       Verify page logic
+  ai/
+    evidence-map.js  AI Evidence Mapper core (pure logic + local embeddings)
+    ai-lab.js        AI Review Lab DOM controller (safe rendering, memo export)
   parsers/
     detect.js     Format auto-detection (file name + first 2 KB)
     whatsapp.js   WhatsApp .txt (iOS bracketed + Android dash variants)
@@ -56,6 +60,7 @@ js/
     csv.js        RFC 4180 state-machine parser + column mapping
 sw.js             Service worker: full offline support after first load
 tests/run.html    In-browser test suite (no framework) + 20k-message perf test
+tests/ai-lab-test.html  AI Review Lab tests (pure logic + on-demand model fixtures)
 ```
 
 Only two external dependencies, both loaded from CDNs and cached by the service
@@ -84,10 +89,15 @@ everything (a `beforeunload` warning guards against accidents).
   user opts in) the DejaVu font from jsDelivr. Verify with the browser's
   Network tab through a full session.
 - **Enforced by a strict Content-Security-Policy** (`_headers`, served by
-  Netlify): `connect-src` is limited to the site itself and the static asset
-  hosts, `form-action 'none'`, no inline scripts. The browser refuses any
-  other network destination, so even a hidden bug could not transmit message
-  content — there is nowhere on the allowlist to send it.
+  Netlify), with page-specific overrides: `form-action 'none'` and no inline
+  scripts everywhere. The evidence-handling pages — `app.html`, `verify.html`
+  and `ai-lab.html` — drop `'self'` from `connect-src` entirely, so a script on
+  those pages has nowhere on the allowlist to POST message content. The
+  wildcard keeps `connect-src 'self'` only so `contact.html` can submit the
+  Netlify contact form. `ai-lab.html` additionally allows GET-only access to
+  the Transformers.js CDN and the Hugging Face model host (to *download* public
+  model files) plus `'wasm-unsafe-eval'` for the WebAssembly runtime — never an
+  upload path for message text.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify
@@ -119,6 +129,49 @@ then:
   than an explicit placeholder.
 - **CJK** — would require a multi-megabyte font; out of scope for now.
 
+## AI Review Lab
+
+`ai-lab.html` is an **optional** feature that demonstrates browser-based AI
+without compromising the trustworthiness of the exhibit pipeline.
+
+- **What it does.** It loads a small sentence-embedding model
+  (`Xenova/all-MiniLM-L6-v2`) into the browser via
+  [Transformers.js](https://github.com/huggingface/transformers.js), embeds a
+  user-supplied claim and their pasted messages, ranks messages by **cosine
+  similarity**, and groups them into *Strongly related*, *Possibly related*,
+  *Needs context* and *Low match* — with cautious, rule-based reason labels, a
+  rule-based summary, a gaps checklist and a downloadable `.txt` review memo.
+- **Semantic similarity, not legal judgment.** Scores are "evidence clarity" /
+  "possible relevance", never "case strength" or "legal score". It never says a
+  message proves anything — only that it *may* relate or *may* need context.
+- **Local and private.** All embedding runs on-device. Message text is **not**
+  sent to OpenAI, Claude, any paid API, or a backend (there is no backend). The
+  only network traffic is GET requests that download the public model weights
+  and the library/runtime from a CDN. Nothing is written to
+  localStorage/sessionStorage/IndexedDB/cookies; refreshing clears everything.
+  (Transformers.js may cache the downloaded model *files* in the browser Cache
+  API — public weights, not your messages.)
+- **Separate from the official builder.** The court-ready exhibit pipeline
+  (`app.html` → `pdf.js`) stays **deterministic and AI-free**. AI never
+  rewrites evidence, decides admissibility, gives legal advice, or changes the
+  exhibit PDF. The AI memo is explicitly *not* part of the exhibit.
+- **Library/model pinning.** Transformers.js is pinned to the `@3` major line
+  (not `@latest`) so a future breaking major can't silently break the page. If
+  the model id ever stops resolving, swap `MODEL_ID` in
+  `js/ai/evidence-map.js` for the smallest available feature-extraction model
+  and note it in that file.
+
+**Limitations (stated plainly):** the model may miss relevant messages; it may
+rank irrelevant messages highly; short replies ("yes", "that works") need
+surrounding context; and users must always review the original messages
+themselves. Human review is required.
+
+> Portfolio note: ExhibitKit includes an optional AI Review Lab that uses local
+> browser embeddings and cosine similarity to map selected messages to a
+> user-defined claim. I kept the official exhibit pipeline deterministic and
+> AI-free, separating AI assistance from evidence generation to preserve trust
+> and reduce legal risk.
+
 ## Development
 
 No tooling required:
@@ -138,6 +191,12 @@ hashing against a known SHA-256 test vector, WinAnsi sanitization, filename
 sanitization, and declaration assembly. The same page has a button that
 generates a synthetic **20,000-message PDF** to verify chunked generation keeps
 the UI responsive with visible progress.
+
+Open `http://localhost:8000/tests/ai-lab-test.html` for the AI Review Lab tests.
+The pure-logic tests (parsing, cosine similarity, scoring, labelling, gap rules
+and memo assembly) run automatically with no network; a button runs the
+money / repair / short-reply / missing-timestamp acceptance fixtures through the
+real local model on demand.
 
 ## Deploy
 

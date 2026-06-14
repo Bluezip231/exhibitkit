@@ -1,6 +1,6 @@
 # Netlify response headers.
 #
-# Two-tier Content-Security-Policy strategy:
+# Three-tier Content-Security-Policy strategy:
 #
 # 1. Wildcard (/*): connect-src includes 'self' so that contact.html can
 #    POST to the same-origin Netlify Forms endpoint via fetch (js/contact.js).
@@ -13,6 +13,16 @@
 #    worker can precache remote assets. This override is the on-page enforcement
 #    of the no-egress privacy promise that connect-src 'self' in the wildcard
 #    would otherwise undermine.
+#
+# 3. AI Review Lab (/ai-lab.html): the optional local-AI page. It needs to load
+#    Transformers.js + the ONNX WebAssembly runtime from jsDelivr and DOWNLOAD
+#    public model weights from the Hugging Face host. So script-src adds
+#    jsDelivr and 'wasm-unsafe-eval' (WASM instantiation only - not general
+#    eval), connect-src adds jsDelivr + the Hugging Face model hosts + blob:/
+#    data: (the runtime fetches the wasm binary as a blob), and worker-src
+#    allows blob: workers. Crucially connect-src still OMITS 'self', so pasted
+#    message text can never be POSTed back to our own origin - the model traffic
+#    is download-only GETs of public files, never an upload of message content.
 
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
@@ -30,6 +40,13 @@
 
 /verify.html
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/ai-lab.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: no-referrer

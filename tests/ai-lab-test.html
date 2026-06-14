@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExhibitKit - AI Review Lab Tests</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <h1>AI Review Lab test suite</h1>
+    <p>The pure-logic tests (parsing, cosine similarity, scoring, labelling, gaps, memo) run automatically in this browser - no network needed. The semantic fixtures download the local model, so they run only when you click the button below.</p>
+
+    <p class="test-summary" id="summary">Running pure-logic tests…</p>
+    <ul class="test-results" id="results"></ul>
+
+    <hr>
+
+    <h2>Semantic fixtures (downloads the local AI model)</h2>
+    <p>Runs the money / repair / short-reply / missing-timestamp acceptance cases through the real local embedding model and checks the expected groupings. The first run downloads the model, so it may take a little while.</p>
+    <button type="button" class="btn" id="model-btn">Run model-based semantic tests</button>
+    <p class="progress-label" id="model-status" aria-live="polite"></p>
+    <ul class="test-results" id="model-results"></ul>
+  </main>
+  <script type="module" src="ai-lab-test.js"></script>
+</body>
+</html>
