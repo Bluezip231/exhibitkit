@@ -503,9 +503,14 @@ export async function loadEmbedder(onProgress) {
   // the model host. Public model files may be cached in the browser Cache API;
   // that is model weights, never user message text.
   env.allowLocalModels = false;
+  env.allowRemoteModels = true;
   env.useBrowserCache = true;
-  // Single-threaded WASM avoids needing cross-origin isolation (SharedArrayBuffer).
-  if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+  // Single-threaded WASM is required: this site has no COOP/COEP headers so
+  // SharedArrayBuffer is unavailable, and multi-threaded ONNX would fail.
+  // Forcibly initialise the wasm config object if Transformers.js v3 hasn't
+  // created it yet (it may be lazy-initialised after the first pipeline call).
+  if (env.backends?.onnx) {
+    if (!env.backends.onnx.wasm) env.backends.onnx.wasm = {};
     env.backends.onnx.wasm.numThreads = 1;
   }
 
