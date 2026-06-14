@@ -1,19 +1,35 @@
 # Netlify response headers.
 #
-# The Content-Security-Policy is part of the product's privacy promise:
-# the browser itself refuses to connect anywhere except this site and the
-# static asset hosts (jsPDF on cdnjs, Google Fonts, the optional DejaVu
-# font on jsDelivr). Even a hidden bug could not transmit message content
-# to a server, because no server is on the allowlist.
+# Two-tier Content-Security-Policy strategy:
 #
-# form-action is 'none' on every page (including the evidence-handling
-# builder/verify pages) so no script can POST data via a form submission.
-# The contact form deliberately does NOT rely on a native form POST; it
-# submits via same-origin fetch (allowed by connect-src 'self') in
-# js/contact.js, so this strict policy can stay site-wide.
+# 1. Wildcard (/*): connect-src includes 'self' so that contact.html can
+#    POST to the same-origin Netlify Forms endpoint via fetch (js/contact.js).
+#    form-action remains 'none' everywhere so a raw form POST is still blocked.
+#
+# 2. Builder/verify pages (/app.html, /verify.html): connect-src drops 'self'
+#    entirely. This closes the path where any script on an evidence-handling
+#    page could call fetch('/') with form-name=contact and exfiltrate data via
+#    the Netlify Forms endpoint. CDN hosts are still listed so the service
+#    worker can precache remote assets. This override is the on-page enforcement
+#    of the no-egress privacy promise that connect-src 'self' in the wildcard
+#    would otherwise undermine.
 
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/app.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/verify.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: no-referrer

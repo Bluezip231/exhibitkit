@@ -1,11 +1,11 @@
 /**
  * contact.js - submit the Netlify contact form via same-origin fetch.
  *
- * The site keeps a strict `form-action 'none'` Content-Security-Policy on
- * every page (including the evidence-handling builder/verify pages), so a
- * native form POST is intentionally blocked. fetch to same-origin is allowed
- * by `connect-src 'self'`, and Netlify Forms captures the POST as long as the
- * body includes the registered `form-name`. No inline script (CSP-safe).
+ * form-action 'none' is set on every page so a native form POST is blocked
+ * everywhere. This script is only loaded on contact.html, which carries a
+ * wildcard CSP with connect-src 'self'; builder/verify pages have a stricter
+ * per-page override that drops 'self' from connect-src, so this fetch path is
+ * unavailable to scripts running on evidence-handling pages.
  */
 const form = document.getElementById('contact-form');
 
