@@ -12,6 +12,11 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://exhibitkit.com/verify.html">
   <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Verify a File Hash - ExhibitKit">
+  <meta name="twitter:description" content="Drop a file, compute its SHA-256 locally, and compare it to an expected hash. For court clerks, opposing counsel, or anyone checking an exhibit.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#FAFAF7">
@@ -19,6 +24,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SHA-256 File Hash Verifier",
+    "url": "https://exhibitkit.com/verify.html",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any (web browser)",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Independently verify a SHA-256 file hash in your browser. Drop the original export file, enter the expected hash, and the tool computes and compares locally — for court clerks, opposing counsel, or anyone checking the integrity of an ExhibitKit exhibit.",
+    "isPartOf": { "@type": "WebSite", "name": "ExhibitKit", "url": "https://exhibitkit.com/" },
+    "author": { "@type": "Person", "name": "Isaiah Shawver" }
+  }
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>

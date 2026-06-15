@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Isaiah Shawver">
   <title>AI Review Lab - ExhibitKit</title>
-  <meta name="description" content="Optional, private AI Review Lab: use local browser AI to map your messages to a claim by possible relevance, spot gaps, and build a review checklist. The official exhibit builder stays deterministic and AI-free. Your messages are not uploaded to any AI API.">
+  <meta name="description" content="Use local browser AI to rank messages by possible relevance to a legal claim. Runs on-device — nothing uploaded. Optional tool; the exhibit builder stays AI-free.">
   <link rel="canonical" href="https://exhibitkit.com/ai-lab.html">
   <meta property="og:title" content="AI Review Lab - ExhibitKit">
-  <meta property="og:description" content="Use local browser AI to organize messages by possible relevance to a claim. Private, no uploads, not legal advice.">
+  <meta property="og:description" content="Use local browser AI to organize messages by possible relevance to a claim. Runs entirely on your device — no uploads, not legal advice.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://exhibitkit.com/ai-lab.html">
   <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Review Lab - ExhibitKit">
+  <meta name="twitter:description" content="Use local browser AI to organize messages by possible relevance to a claim. Runs entirely on your device — no uploads, not legal advice.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#FAFAF7">
@@ -19,6 +24,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AI Review Lab",
+    "url": "https://exhibitkit.com/ai-lab.html",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any (web browser)",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Optional local-AI tool that uses browser-based sentence embeddings (Transformers.js, Xenova/all-MiniLM-L6-v2) to rank pasted messages by possible relevance to a legal claim. All AI processing runs on-device using WebAssembly — message text is never uploaded to any API. Separate from the official exhibit builder.",
+    "isPartOf": { "@type": "WebSite", "name": "ExhibitKit", "url": "https://exhibitkit.com/" },
+    "author": { "@type": "Person", "name": "Isaiah Shawver" }
+  }
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
