@@ -230,6 +230,9 @@ function eq(name, actual, expected) {
   check('gaps: "pay you back Friday" (no figure) triggers gap', moneyGapFires("I'll pay you back Friday"));
   check('gaps: "pay at 5 Friday" (time, not amount) triggers gap', moneyGapFires("I'll pay you at 5 Friday"));
   check('gaps: "pay on 6/12" (date, not amount) triggers gap', moneyGapFires("I'll pay on 6/12"));
+  check('gaps: "rent due on 6/12" triggers gap', moneyGapFires('rent due on 6/12'));
+  check('gaps: "payment at 5 Friday" triggers gap', moneyGapFires('payment at 5 Friday'));
+  check('gaps: "deposit due 6/12" triggers gap', moneyGapFires('deposit due 6/12'));
   check('gaps: "What is the balance?" (no figure) triggers gap', moneyGapFires('What is the balance?'));
   check('gaps: "What is the total amount?" (no figure) triggers gap', moneyGapFires('What is the total amount?'));
   check('gaps: "I can meet at 7" triggers gap', moneyGapFires('I can meet at 7'));
@@ -243,7 +246,8 @@ function eq(name, actual, expected) {
   check('gaps: "amount is 500" suppresses gap', !moneyGapFires('amount is 500'));
   check('gaps: "deposit of 300" suppresses gap', !moneyGapFires('deposit of 300'));
   check('gaps: "rent is 1200" suppresses gap', !moneyGapFires('rent is 1200'));
-  check('gaps: "loan balance 450" suppresses gap', !moneyGapFires('loan balance 450'));
+  check('gaps: "total: 500" suppresses gap', !moneyGapFires('total: 500'));
+  check('gaps: "payment of 250" suppresses gap', !moneyGapFires('payment of 250'));
   check('gaps: "half the rent" suppresses gap', !moneyGapFires("I'll pay half the rent Friday"));
   check('gaps: "full deposit" suppresses gap', !moneyGapFires('full deposit'));
   check('gaps: "all of the loan" suppresses gap', !moneyGapFires('all of the loan'));

@@ -110,16 +110,15 @@ everything (a `beforeunload` warning guards against accidents).
   scripts anywhere. `connect-src` never includes `'self'` on any page, so a
   script has nowhere on the allowlist to POST message content. Only the contact
   pages relax `form-action` to `'self'` (for the no-JS Netlify form POST);
-  `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` keeps
-  `script-src 'self'` (no third-party script host — Transformers.js and the
-  ONNX loader glue are vendored locally) plus `'wasm-unsafe-eval'` and blob: for
-  the WebAssembly runtime. `'unsafe-eval'` is deliberately **not** granted: the
-  vendored bundle and ONNX glue load wasm via `WebAssembly.instantiate(Streaming)`
-  and contain no `eval()`/`new Function()` (the lone `Function("return this")`
-  is a dead-code `globalThis` shim). `connect-src` allows GET-only *binary*
-  downloads from jsDelivr (the ONNX `.wasm`) and the Hugging Face model hosts
-  (model weights) — but still no `'self'`, so never an upload path for message
-  text.
+  `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` adds
+  `'wasm-unsafe-eval'`, `'unsafe-eval'`, and `blob:` to `script-src`
+  because onnxruntime-web uses JavaScript code generation for browser inference —
+  no third-party script host is listed, so eval applies only to the vendored code
+  running from our own origin. This eval permission is granted **only to
+  `/ai-lab`** and **never to the Builder, Verify, or any other page**. `connect-src`
+  allows GET-only *binary* downloads from jsDelivr (the ONNX `.wasm`) and the
+  Hugging Face model hosts (model weights) — but still no `'self'`, so never an
+  upload path for message text.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify

@@ -23,14 +23,15 @@
 #     (js/ai/vendor/transformers.min.js) AND the executable ONNX runtime loader
 #     glue (js/ai/vendor/ort-wasm-simd-threaded.jsep.mjs) are VENDORED locally and
 #     imported from our own origin, so NO external JavaScript executes in the same
-#     page context as pasted messages. script-src is therefore 'self' only (plus
-#     'wasm-unsafe-eval' + blob: for the WebAssembly runtime — the vendored
-#     bundle and ONNX glue use WebAssembly.instantiate(Streaming) with no eval()
-#     or new Function(), so 'unsafe-eval' is deliberately NOT granted) and
-#     does NOT include cdn.jsdelivr.net. connect-src adds jsDelivr + Hugging Face
-#     for GET-only BINARY downloads — the ONNX wasm binary (jsDelivr) and the model
-#     weights (Hugging Face), data that runs in the wasm sandbox, never page script.
-#     connect-src still OMITS 'self', so there is no POST path back to our origin.
+#     page context as pasted messages. script-src requires 'unsafe-eval' because
+#     onnxruntime-web uses JavaScript code generation for browser inference; this
+#     applies only to /ai-lab — the Builder, Verify, and all other pages do NOT
+#     grant 'unsafe-eval'. 'wasm-unsafe-eval' + blob: are also required for the
+#     WebAssembly runtime. script-src does NOT include cdn.jsdelivr.net. connect-src
+#     adds jsDelivr + Hugging Face for GET-only BINARY downloads — the ONNX wasm
+#     binary (jsDelivr) and model weights (Hugging Face), data that runs in the wasm
+#     sandbox, never page script. connect-src still OMITS 'self', so there is no
+#     POST path back to our origin.
 #   - Contact success (/contact-success, /contact-success.html): standard tier.
 
 /*
@@ -64,10 +65,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /ai-lab
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /ai-lab.html
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /privacy
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'

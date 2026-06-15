@@ -247,16 +247,20 @@ const SHORT_AGREEMENT = [
 
 const RE_MONEY = /\$\s?\d|\b(pay|paid|pays|paying|owe|owed|owes|repay|repaid|rent|refund|loan|venmo|cashapp|zelle|paypal|dollars?|deposit)\b/i;
 // Narrower than RE_MONEY: requires evidence of an *actual amount*, not just a
-// money topic. Used in analyzeGaps() so "I'll pay you back Friday",
-// "I'll pay at 5 Friday" (time), "I'll pay on 6/12" (date), or
-// "What is the balance?" still trigger the gap warning.
-// A bare number NEVER matches on its own — it must have money context:
-//   $500           → currency symbol before digit
-//   500 dollars    → money unit word after number
-//   balance is 500 → money noun (balance/total/amount/deposit/rent/loan/payment)
-//                    within 25 chars before the digit
-//   half the rent  → explicit fraction/full/all phrase tied to a money noun
-const RE_AMOUNT = /\$\s?\d|\b\d[\d,]*(?:\.\d{1,2})?\s*(?:dollars?|bucks?)|\b(?:balance|total|amount|deposit|rent|loan|payment)\b[^\n]{0,25}\d|(?:half|full|all)\s+(?:of\s+)?(?:the\s+)?(?:rent|deposit|loan|amount|balance|total|payment)\b/i;
+// money topic. Used in analyzeGaps() so vague money messages ("I'll pay you
+// back Friday", "rent due on 6/12", "payment at 5 Friday") still trigger the
+// "may not clearly show an amount" warning, while messages with an explicit
+// figure do not.
+// Alternatives (in order):
+//   \$\s?\d                          — currency prefix ($500, $1,200)
+//   \d...\s*(?:dollars?|bucks?)      — number + unit (500 dollars, 50 bucks)
+//   money-noun + connector + digit   — balance/total/amount/deposit/rent/
+//                                      loan/payment/refund followed immediately
+//                                      by is/was/=/:/of and a digit; the strict
+//                                      connector prevents "rent due on 6/12"
+//                                      or "payment at 5" from matching
+//   fraction phrase                  — half/full/all the rent|deposit|loan|...
+const RE_AMOUNT = /\$\s?\d|\b\d[\d,]*(?:\.\d{1,2})?\s*(?:dollars?|bucks?)|\b(?:balance|total|amount|deposit|rent|loan|payment|refund)\s*(?:is|was|=|:|of)\s*\d|(?:half|full|all)\s+(?:of\s+)?(?:the\s+)?(?:rent|deposit|loan|amount|balance|total|payment)\b/i;
 const RE_REPAIR = /\b(repair|repaired|repairs|fix|fixed|fixing|broken|break|leak|leaking|landlord|maintenance|plumber|heater|furnace|mold|mould|appliance|sink|toilet|outage)\b/i;
 // Broad threat set used only to test for *presence* in the gap analysis (per
 // spec): bare "stop"/"hurt"/"scared" are too ambiguous to assert as a reason.
