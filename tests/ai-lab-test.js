@@ -220,30 +220,33 @@ function eq(name, actual, expected) {
   check('gaps: flags missing timestamps', result.gaps.some((g) => g.includes('missing timestamps')));
   check('gaps: flags no strong group', result.gaps.some((g) => g.includes('did not find a clear group')));
 
-  // Money-topic words alone (no actual figure) must still trigger the gap warning.
-  const moneyMsgs = parseMessages('1/1/26 12:00 - A: we talked about the schedule for next week');
-  const moneyResult = buildEvidenceMap(moneyMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
-  check('gaps: money claim without amount flagged', moneyResult.gaps.some((g) => g.includes('claim involves money')));
-
-  // "I'll pay you back Friday" has money-topic words but no amount — gap must appear.
-  const noAmountMsgs = parseMessages('1/1/26 12:00 - A: I\'ll pay you back Friday');
-  const noAmountResult = buildEvidenceMap(noAmountMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
-  check('gaps: "pay you back Friday" (no figure) triggers money amount gap',
-    noAmountResult.gaps.some((g) => g.includes('claim involves money')));
-
   // Helper: does the money-amount gap fire for `body` against a money claim?
   const moneyGapFires = (body) => buildEvidenceMap(
     parseMessages(`1/1/26 12:00 - A: ${body}`), [1, 0], [[1, 0]], 'they agreed to pay me back the rent',
   ).gaps.some((g) => g.includes('claim involves money'));
 
-  // Bare topic words (amount/total/balance) with NO figure must still flag.
-  check('gaps: "What is the balance?" triggers money amount gap', moneyGapFires('What is the balance?'));
-  check('gaps: "What is the total amount?" triggers money amount gap', moneyGapFires('What is the total amount?'));
+  // BAD: no amount evidence — gap must fire.
+  check('gaps: no money at all triggers gap', moneyGapFires('we talked about the schedule for next week'));
+  check('gaps: "pay you back Friday" (no figure) triggers gap', moneyGapFires("I'll pay you back Friday"));
+  check('gaps: "pay at 5 Friday" (time, not amount) triggers gap', moneyGapFires("I'll pay you at 5 Friday"));
+  check('gaps: "pay on 6/12" (date, not amount) triggers gap', moneyGapFires("I'll pay on 6/12"));
+  check('gaps: "What is the balance?" (no figure) triggers gap', moneyGapFires('What is the balance?'));
+  check('gaps: "What is the total amount?" (no figure) triggers gap', moneyGapFires('What is the total amount?'));
+  check('gaps: "I can meet at 7" triggers gap', moneyGapFires('I can meet at 7'));
 
-  // An actual figure or fraction-of-X phrase suppresses the gap.
-  check('gaps: "pay you back $500 Friday" suppresses money amount gap', !moneyGapFires("I'll pay you back $500 Friday"));
-  check('gaps: "The balance is 500" suppresses money amount gap', !moneyGapFires('The balance is 500'));
-  check('gaps: "I\'ll pay half the rent Friday" suppresses money amount gap', !moneyGapFires("I'll pay half the rent Friday"));
+  // GOOD: actual amount evidence — gap must be suppressed.
+  check('gaps: "$500" suppresses gap', !moneyGapFires('I owe $500'));
+  check('gaps: "500 dollars" suppresses gap', !moneyGapFires('I owe 500 dollars'));
+  check('gaps: "500 bucks" suppresses gap', !moneyGapFires('500 bucks'));
+  check('gaps: "balance is 500" suppresses gap', !moneyGapFires('The balance is 500'));
+  check('gaps: "total is 500" suppresses gap', !moneyGapFires('total is 500'));
+  check('gaps: "amount is 500" suppresses gap', !moneyGapFires('amount is 500'));
+  check('gaps: "deposit of 300" suppresses gap', !moneyGapFires('deposit of 300'));
+  check('gaps: "rent is 1200" suppresses gap', !moneyGapFires('rent is 1200'));
+  check('gaps: "loan balance 450" suppresses gap', !moneyGapFires('loan balance 450'));
+  check('gaps: "half the rent" suppresses gap', !moneyGapFires("I'll pay half the rent Friday"));
+  check('gaps: "full deposit" suppresses gap', !moneyGapFires('full deposit'));
+  check('gaps: "all of the loan" suppresses gap', !moneyGapFires('all of the loan'));
 })();
 
 /* -------------- low-match non-truncation (data model) -------------------- */
