@@ -2,55 +2,59 @@
 #
 # Three-tier Content-Security-Policy strategy:
 #
-# 1. Wildcard (/*): connect-src includes 'self' so that contact.html can
-#    POST to the same-origin Netlify Forms endpoint via fetch (js/contact.js).
-#    form-action remains 'none' everywhere so a raw form POST is still blocked.
+# 1. Wildcard (/*): baseline CSP for all static pages.
+#    connect-src intentionally omits 'self' so no script on any page can
+#    POST user content to the same-origin Netlify Forms endpoint. All
+#    singleton security headers (X-Content-Type-Options, X-Frame-Options,
+#    Referrer-Policy, Permissions-Policy) live here only; page-specific
+#    blocks must NOT repeat them or Netlify will emit duplicates.
 #
-# 2. Builder/verify pages (/app.html, /verify.html): connect-src drops 'self'
-#    entirely. This closes the path where any script on an evidence-handling
-#    page could call fetch('/') with form-name=contact and exfiltrate data via
-#    the Netlify Forms endpoint. CDN hosts are still listed so the service
-#    worker can precache remote assets. This override is the on-page enforcement
-#    of the no-egress privacy promise that connect-src 'self' in the wildcard
-#    would otherwise undermine.
+# 2. Contact pages (/contact.html, /contact): the one place an intentional
+#    form POST to same-origin is needed. Override CSP to allow
+#    form-action 'self' so the native Netlify form POST works without JS.
+#    connect-src still omits 'self'.
 #
-# 3. AI Review Lab (/ai-lab.html): the optional local-AI page. It needs to load
-#    Transformers.js + the ONNX WebAssembly runtime from jsDelivr and DOWNLOAD
-#    public model weights from the Hugging Face host. So script-src adds
-#    jsDelivr, 'wasm-unsafe-eval' (WASM instantiation, spec-compliant keyword),
-#    'unsafe-eval' (fallback for browsers that don't yet honour wasm-unsafe-eval
-#    alone - notably Firefox < 108 and some older Safari/Chrome builds), and
-#    blob: (for ONNX Runtime's blob: worker scripts). connect-src adds jsDelivr
-#    + the Hugging Face model hosts + blob:/data: (WASM binary as a blob), and
-#    worker-src allows blob: workers. Crucially connect-src still OMITS 'self',
-#    so pasted message text can never be POSTed back to our own origin - the
-#    model traffic is download-only GETs of public files, never an upload of
-#    message content.
+# 3. Builder/Verify pages (/app.html, /app, /verify.html, /verify): explicit
+#    CSP override that matches the wildcard exactly, pinning the no-connect-src
+#    guarantee for evidence-handling pages against future wildcard changes.
+#    This is the on-page enforcement of "evidence files never leave the browser".
+#
+# 4. AI Review Lab (/ai-lab.html, /ai-lab): loads Transformers.js + ONNX
+#    WebAssembly runtime from jsDelivr and DOWNLOADS public model weights from
+#    Hugging Face. script-src adds jsDelivr, 'wasm-unsafe-eval' (WASM
+#    instantiation), 'unsafe-eval' (fallback for browsers that don't yet honour
+#    wasm-unsafe-eval alone), and blob: (ONNX Runtime blob: workers).
+#    connect-src adds jsDelivr + Hugging Face model hosts + blob:/data: (WASM
+#    binary), and worker-src allows blob: workers. connect-src still OMITS
+#    'self', so pasted message text can never be POSTed back to our own origin.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/contact.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+/contact
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /app.html
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: no-referrer
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/app
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /verify.html
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: no-referrer
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/verify
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /ai-lab.html
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: no-referrer
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/ai-lab
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'

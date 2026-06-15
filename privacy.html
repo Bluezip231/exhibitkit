@@ -36,13 +36,23 @@
 
   <main class="wrap" id="main">
     <h1>Privacy policy</h1>
-    <p class="hint">Last updated: June 13, 2026.</p>
+    <p class="hint">Last updated: June 15, 2026.</p>
 
     <p class="notice notice-success"><strong>The short version:</strong> your message files are read and processed entirely in your browser and are never uploaded to us or anyone else. The only information we ever receive is what you choose to type into the contact form.</p>
 
     <h2>Your message exports and exhibits</h2>
     <p>When you use the <a href="app.html">builder</a> or the <a href="verify.html">verify</a> page, the files you choose are read by your own browser using the local File API, processed in memory, and turned into a PDF on your device. They are <strong>never</strong> sent to a server. We have no upload endpoint, no database, and no account system, so there is nowhere for your messages to go. This isn't only a promise - the site is served with a strict Content-Security-Policy that prevents the page from connecting anywhere except the static asset hosts listed below, so the browser itself blocks any attempt to transmit your file content. You can confirm it by watching your browser's network tab while you build an exhibit.</p>
     <p>Nothing is stored, either: we don't use cookies, localStorage, sessionStorage, or any other persistence for your message content (or anything else). Refreshing the page erases your session entirely.</p>
+
+    <h2>AI Review Lab (optional feature)</h2>
+    <p>The <a href="ai-lab.html">AI Review Lab</a> is an optional, local-AI feature that ranks your pasted messages by relevance to a claim. Here is exactly what it does and does not do with your data:</p>
+    <ul class="feature-list">
+      <li><strong>Your message text is never uploaded.</strong> Embedding (the AI ranking process) runs entirely inside your browser using WebAssembly. No message content ever leaves your device.</li>
+      <li><strong>Model files are downloaded from public CDNs.</strong> On first use, your browser downloads the Transformers.js library from <strong>jsDelivr</strong> (~1 MB) and the public <code>Xenova/all-MiniLM-L6-v2</code> model weights from <strong>Hugging Face</strong> (~23 MB). These are standard GET requests for public files; they reveal your IP to those hosts, as with any CDN-served resource.</li>
+      <li><strong>Your browser may cache the model files.</strong> The browser's Cache API may store the downloaded model files locally so subsequent visits don't re-download them. These are public model weights, not your messages, and they are stored no differently than a cached image or font.</li>
+      <li><strong>No message text is written to persistent storage.</strong> The AI Review Lab does not use localStorage, sessionStorage, IndexedDB, or cookies for your messages. Closing or refreshing the tab erases your session.</li>
+      <li><strong>The AI Lab is not part of the official PDF builder.</strong> It is a separate review-only helper. The court-ready PDF builder remains AI-free and never makes any network requests at all while processing your files.</li>
+    </ul>
 
     <h2>The contact form</h2>
     <p>The <a href="contact.html">contact form</a> is the one place data is intentionally sent. When you submit it, your name, email (if provided), topic, and message are sent to our hosting provider, Netlify, which stores the submission and notifies us so we can reply. We ask you not to include private message content or evidence in it. We use what you send only to respond to you; we don't sell it or use it for marketing.</p>

@@ -211,7 +211,7 @@ function renderResult(result) {
     }),
     renderChecklistGroup('Possible gaps to review', result.gaps, 'ai-gaps'),
     renderChecklistGroup('Human review checklist', result.checklist, 'ai-checklist'),
-    renderGroup('Low match messages', result.groups.low.slice(0, 25), {
+    renderGroup('Low match messages', result.groups.low, {
       collapsed: true,
     }),
   ];

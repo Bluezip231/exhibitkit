@@ -130,7 +130,16 @@ function eq(name, actual, expected) {
   check('reason: repair detected', repair.includes('Mentions repair/request'));
 
   const threat = reasonLabels({ body: 'stop or you will regret it' }, 'threats were made', 0.6);
-  check('reason: threat detected', threat.includes('Mentions threat/harassment language'));
+  check('reason: threat "will regret" detected', threat.includes('Mentions threat/harassment language'));
+
+  const regretThreat2 = reasonLabels({ body: "you'll regret this" }, 'threats were made', 0.6);
+  check('reason: threat "you\'ll regret" detected', regretThreat2.includes('Mentions threat/harassment language'));
+
+  const regretThreat3 = reasonLabels({ body: "I'll make you regret it" }, 'threats were made', 0.6);
+  check('reason: threat "make you regret" detected', regretThreat3.includes('Mentions threat/harassment language'));
+
+  const bareRegret = reasonLabels({ body: 'I regret missing the meeting' }, 'unrelated claim', 0.3);
+  check('reason: bare "I regret" does NOT trigger threat label', !bareRegret.includes('Mentions threat/harassment language'));
 })();
 
 /* -------------------- buildEvidenceMap with fake vectors ----------------- */
@@ -184,6 +193,18 @@ function eq(name, actual, expected) {
   const moneyMsgs = parseMessages('1/1/26 12:00 - A: we talked about the schedule for next week');
   const moneyResult = buildEvidenceMap(moneyMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
   check('gaps: money claim without amount flagged', moneyResult.gaps.some((g) => g.includes('claim involves money')));
+})();
+
+/* -------------- low-match non-truncation (data model) -------------------- */
+
+(function lowMatchTests() {
+  // 30 messages all with orthogonal (zero similarity) vectors — all land in low.
+  const lines = Array.from({ length: 30 }, (_, i) => `1/1/26 12:${String(i).padStart(2, '0')} - A: message number ${i}`);
+  const messages = parseMessages(lines.join('\n'));
+  const claimVec = [1, 0];
+  const msgVecs = messages.map(() => [0, 1]); // all orthogonal to claim
+  const result = buildEvidenceMap(messages, claimVec, msgVecs, 'unrelated claim');
+  eq('low-match: all 30 messages appear in low group (no truncation)', result.groups.low.length, 30);
 })();
 
 /* -------------------------------- memo ----------------------------------- */

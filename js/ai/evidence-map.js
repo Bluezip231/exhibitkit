@@ -183,7 +183,9 @@ const RE_REPAIR = /\b(repair|repaired|repairs|fix|fixed|fixing|broken|break|leak
 const RE_THREAT = /\b(threat|threats|threaten|threatened|threatening|hurt|kill|harm|scared|afraid|harass|harassment|stop|leave me alone|or else|regret|watch out)\b/i;
 // Stricter set used for the per-message "may mention threat" reason label, to
 // avoid alarming false positives on benign words like "stop by" or "bus stop".
-const RE_THREAT_REASON = /\b(threat|threats|threaten|threatened|threatening|kill|harm|harass|harassment|leave me alone|or else|watch out)\b/i;
+// "regret" matches only when used as a threat ("will regret", "you'll regret",
+// "make you regret") — bare "I regret" / "I regret that" does not match.
+const RE_THREAT_REASON = /\b(threat|threats|threaten|threatened|threatening|kill|harm|harass|harassment|leave me alone|or else|watch out)\b|(?:will|gonna)\s+regret\b|you'?ll\s+regret\b|(?:make|made)\s+\w+\s+regret\b/i;
 const RE_AGREEMENT = /\b(agree|agreed|promise|promised|deal|confirm|confirmed|i'?ll|i will|we will|will pay|pay you back|sounds good)\b/i;
 // Note: am/pm only counts when attached to a number (e.g. "3pm", "11 a.m.") so
 // the ordinary verb "am" in "I am here" is not mistaken for a time.

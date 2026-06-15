@@ -43,9 +43,8 @@
     </div>
 
     <!-- Netlify form: detected at deploy time via data-netlify. Honeypot
-         (bot-field) catches bots. It submits via same-origin fetch in
-         js/contact.js so the site can keep form-action 'none' everywhere
-         (a native form POST would be blocked by the CSP, by design). -->
+         (bot-field) catches bots. Submits natively to Netlify; the
+         /contact.html CSP override allows form-action 'self' for this page. -->
     <form id="contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/contact-success.html">
       <input type="hidden" name="form-name" value="contact">
       <p hidden>
@@ -79,8 +78,6 @@
       </div>
 
       <button type="submit" class="btn btn-large">Send message</button>
-      <p id="form-status" class="notice" role="status" hidden></p>
-      <noscript><p class="hint">This form needs JavaScript to send. With it turned off, reach out on <a href="https://x.com/ShawverTech" rel="noopener">X (@ShawverTech)</a> or <a href="https://github.com/bluezip231/exhibitkit" rel="noopener">GitHub</a> instead.</p></noscript>
     </form>
 
     <hr>
@@ -99,7 +96,6 @@
     </div>
   </footer>
 
-  <script src="js/contact.js" defer></script>
   <script src="js/pwa.js" defer></script>
 </body>
 </html>
