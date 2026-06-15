@@ -1,5 +1,5 @@
 /**
- * hash.js — SHA-256 hashing of original file bytes via the Web Crypto API.
+ * hash.js - SHA-256 hashing of original file bytes via the Web Crypto API.
  *
  * The hash is always computed over the ORIGINAL uploaded bytes, never over
  * parsed or selected messages. This is the forensic anchor of every exhibit.

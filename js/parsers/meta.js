@@ -1,5 +1,5 @@
 /**
- * meta.js — parser for Facebook Messenger / Instagram DM JSON exports
+ * meta.js - parser for Facebook Messenger / Instagram DM JSON exports
  * (Meta "Download Your Information", JSON format, message_1.json files).
  *
  * Notes:
@@ -10,7 +10,7 @@
  *    \u00e9 (e-acute) arrives as \u00c3\u00a9. fixMojibake() re-decodes
  *    every string after JSON.parse.
  *  - Messages without `content` (photos, stickers, calls…) become bracketed
- *    placeholders — a message is never silently skipped.
+ *    placeholders - a message is never silently skipped.
  */
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -37,7 +37,7 @@ export function fixMojibake(str) {
   try {
     // escape() maps each code point ≤ 0xFF to %XX; decodeURIComponent then
     // re-reads those bytes as UTF-8. Throws if the bytes are not valid UTF-8
-    // (i.e. the string was not mojibake) — in that case keep the original.
+    // (i.e. the string was not mojibake) - in that case keep the original.
     return decodeURIComponent(escape(str));
   } catch {
     return str;

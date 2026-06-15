@@ -1,5 +1,5 @@
 /**
- * verify.js — standalone hash verification page.
+ * verify.js - standalone hash verification page.
  *
  * Anyone (a clerk, opposing counsel) can drop a file, see its SHA-256
  * computed locally, paste an expected hash, and get MATCH / NO MATCH.
@@ -56,7 +56,7 @@ async function handleFile(file) {
   try {
     const buffer = await file.arrayBuffer();
     computedHash = await sha256Hex(buffer);
-    $('file-meta').textContent = `${file.name} — ${formatBytes(buffer.byteLength)}`;
+    $('file-meta').textContent = `${file.name} - ${formatBytes(buffer.byteLength)}`;
     $('computed-hash').textContent = computedHash;
     $('hash-result').hidden = false;
   } catch (err) {

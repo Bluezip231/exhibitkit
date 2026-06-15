@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Isaiah Shawver">
+  <title>AI Review Lab - ExhibitKit</title>
+  <meta name="description" content="Use local browser AI to rank messages by possible relevance to a legal claim. Runs on-device — nothing uploaded. Optional tool; the exhibit builder stays AI-free.">
+  <link rel="canonical" href="https://exhibitkit.com/ai-lab.html">
+  <meta property="og:title" content="AI Review Lab - ExhibitKit">
+  <meta property="og:description" content="Use local browser AI to organize messages by possible relevance to a claim. Runs entirely on your device — no uploads, not legal advice.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/ai-lab.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Review Lab - ExhibitKit">
+  <meta name="twitter:description" content="Use local browser AI to organize messages by possible relevance to a claim. Runs entirely on your device — no uploads, not legal advice.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AI Review Lab",
+    "url": "https://exhibitkit.com/ai-lab.html",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any (web browser)",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Optional local-AI tool that uses browser-based sentence embeddings (Transformers.js, Xenova/all-MiniLM-L6-v2) to rank pasted messages by possible relevance to a legal claim. All AI processing runs on-device using WebAssembly — message text is never uploaded to any API. Separate from the official exhibit builder.",
+    "isPartOf": { "@type": "WebSite", "name": "ExhibitKit", "url": "https://exhibitkit.com/" },
+    "author": { "@type": "Person", "name": "Isaiah Shawver" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+        <a href="ai-lab.html" aria-current="page">AI Review Lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>AI Review Lab</h1>
+    <p class="ai-tagline">AI Review Lab uses local AI to help organize messages by relevance. It does not decide whether evidence is admissible, truthful, or legally sufficient.</p>
+
+    <div class="notice-block" role="note">
+      <strong>Please read first.</strong>
+      <p>AI Review Lab is a private review helper. It does not provide legal advice and does not decide whether evidence is admissible, truthful, or legally sufficient. It only helps organize selected text by possible relevance. Always review the original messages yourself.</p>
+    </div>
+
+    <div class="notice notice-success ai-privacy" role="note">
+      <strong>Your messages stay in your browser.</strong> The AI model may download to your device, but your message text is not uploaded to an AI API. Nothing is saved - not in the cloud, not in your browser storage. Refresh the page and it is gone.
+    </div>
+
+    <p class="ai-builder-note">The official ExhibitKit exhibit builder and the court-ready PDFs it produces stay <strong>deterministic and AI-free</strong>. This lab is a separate, optional helper - it never rewrites your evidence or changes the exhibit PDF.</p>
+
+    <section class="ai-input-card" aria-labelledby="h-input">
+      <h2 id="h-input">1. Add your messages and claim</h2>
+
+      <div class="field">
+        <label for="ai-messages">Paste messages to review</label>
+        <textarea id="ai-messages" rows="10" placeholder="[6/12/26, 3:45 PM] Isaiah: The sink is leaking again.
+6/12/26, 3:50 PM - Landlord: I'll send someone Friday.
+Yes.
+That works."></textarea>
+        <p class="hint">Paste copied text in any form. Lines like <code>[date] Sender: text</code>, <code>date - Sender: text</code>, <code>Sender: text</code>, or plain text all work. For privacy, your messages are never stored or uploaded; this lab is paste-based by design, because ExhibitKit keeps nothing between pages.</p>
+      </div>
+
+      <div class="field">
+        <label for="ai-claim">What are you trying to show with these messages?</label>
+        <input type="text" id="ai-claim" placeholder="Example: The landlord ignored repair requests after being told about the leak.">
+      </div>
+
+      <div class="list-actions">
+        <button type="button" class="btn btn-large" id="ai-generate">Generate evidence map</button>
+        <button type="button" class="btn btn-danger" id="ai-cancel" hidden>Cancel</button>
+      </div>
+
+      <div id="ai-error" class="notice notice-error" role="alert" hidden></div>
+      <div id="ai-truncate-notice" class="notice" role="note" hidden></div>
+
+      <div class="progress-wrap ai-progress-wrap" id="ai-progress-wrap" hidden>
+        <progress id="ai-progress" max="100" value="0" aria-label="Analysis progress"></progress>
+      </div>
+      <p class="progress-label" id="ai-status" aria-live="polite" role="status"></p>
+    </section>
+
+    <section id="ai-results" class="ai-results" aria-labelledby="h-results" hidden>
+      <h2 id="h-results">2. Evidence map</h2>
+
+      <div class="ai-summary-card">
+        <h3>Evidence map summary</h3>
+        <p id="ai-summary"></p>
+      </div>
+
+      <div class="list-actions ai-memo-actions" id="ai-memo-actions" hidden>
+        <button type="button" class="btn btn-secondary" id="ai-copy-memo">Copy review memo</button>
+        <button type="button" class="btn btn-secondary" id="ai-download-memo">Download AI review memo</button>
+        <span class="hint ai-memo-note">The memo is a plain .txt review aid. It is <strong>not</strong> part of the official ExhibitKit evidence PDF.</span>
+      </div>
+
+      <div id="ai-groups"></div>
+    </section>
+
+    <section aria-labelledby="h-how" class="ai-how">
+      <h2 id="h-how">How AI Review Lab works (and its limits)</h2>
+      <ul class="feature-list">
+        <li>It loads a small sentence-embedding model into your browser and measures the <strong>semantic relevance</strong> between your claim and each message. This is not a "legal score" or "case strength."</li>
+        <li>It groups messages into <em>Strongly related</em>, <em>Possibly related</em>, <em>Needs context</em> and <em>Low match</em> - and never deletes anything.</li>
+        <li>It may miss relevant messages, and it may rank irrelevant messages highly. Short replies like "yes" or "that works" usually need surrounding context.</li>
+        <li>It does not decide admissibility, truthfulness, or legal sufficiency. <strong>Human review is required.</strong></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice. AI Review Lab is for organization and review only.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="ai-lab.html">AI Review Lab</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/ai/ai-lab.js"></script>
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>

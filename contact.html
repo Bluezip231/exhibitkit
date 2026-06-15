@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Isaiah Shawver">
+  <title>Contact - ExhibitKit</title>
+  <meta name="description" content="Questions, feedback, bug reports or partnership requests for ExhibitKit. Reach the maker by form or on X.">
+  <link rel="canonical" href="https://exhibitkit.com/contact.html">
+  <meta property="og:title" content="Contact - ExhibitKit">
+  <meta property="og:description" content="Questions, feedback, bug reports or partnership requests for ExhibitKit.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/contact.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Contact - ExhibitKit">
+  <meta name="twitter:description" content="Questions, feedback, bug reports or partnership requests for ExhibitKit.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>Contact</h1>
+    <p>Questions, feedback, bug reports, or partnership requests - send a note below and we'll get back to you.</p>
+
+    <div class="notice">
+      <strong>One thing first:</strong> this form sends your message to our host (Netlify) so we can read and reply to it. The exhibit builder never uploads anything - but this contact form does, so please <strong>don't paste your actual messages, exhibits, or evidence here</strong>. Describe the issue instead.
+    </div>
+
+    <!-- Netlify form: detected at deploy time via data-netlify. Honeypot
+         (bot-field) catches bots. Submits natively to Netlify; the
+         /contact.html CSP override allows form-action 'self' for this page. -->
+    <form id="contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/contact-success.html">
+      <input type="hidden" name="form-name" value="contact">
+      <p hidden>
+        <label>Don't fill this out if you're human: <input name="bot-field"></label>
+      </p>
+
+      <div class="field">
+        <label for="c-name">Your name <span class="hint">(optional)</span></label>
+        <input type="text" id="c-name" name="name" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label for="c-email">Email <span class="hint">(optional - only if you'd like a reply)</span></label>
+        <input type="email" id="c-email" name="email" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label for="c-topic">Topic</label>
+        <select id="c-topic" name="topic">
+          <option>General question</option>
+          <option>Feedback</option>
+          <option>Bug report</option>
+          <option>Partnership</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="c-message">Message</label>
+        <textarea id="c-message" name="message" rows="6" required></textarea>
+        <p class="hint">Please don't include private message content or personal evidence.</p>
+      </div>
+
+      <button type="submit" class="btn btn-large">Send message</button>
+    </form>
+
+    <hr>
+
+    <h2>Other ways to reach us</h2>
+    <p>Prefer social? Message <a href="https://x.com/ShawverTech" rel="noopener">@ShawverTech on X</a>. Found a bug or want to read the code? ExhibitKit is open source on <a href="https://github.com/bluezip231/exhibitkit" rel="noopener">GitHub</a> - issues and pull requests are welcome.</p>
+    <p class="hint">ExhibitKit is not a law firm and can't give legal advice or answer questions about your specific case - for that, contact an attorney or your local legal aid office.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ExhibitKit — design system
+   ExhibitKit - design system
    Subject grounding: court filing × forensic lab. Paper, ink, precision.
    ========================================================================== */
 
@@ -303,7 +303,7 @@ input[type="checkbox"] {
 .field-error { border-color: var(--seal) !important; }
 
 /* --------------------------------------------------------------------------
-   The Evidence Seal — signature component
+   The Evidence Seal - signature component
    -------------------------------------------------------------------------- */
 
 .evidence-seal {
@@ -759,6 +759,13 @@ progress {
 
 .hero-cta { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: center; }
 
+.hero-byline {
+  margin: 1.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.hero-byline a { color: var(--muted); }
+
 .kicker {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -898,3 +905,158 @@ kbd, .ui-name {
 .test-results li.pass::before { content: "PASS "; color: var(--verify-green); font-weight: 600; }
 .test-results li.fail::before { content: "FAIL "; color: var(--seal); font-weight: 600; }
 .test-summary { font-family: var(--font-mono); font-weight: 600; margin: 1rem 0; }
+
+/* --------------------------------------------------------------------------
+   AI Review Lab
+   -------------------------------------------------------------------------- */
+
+.ai-tagline {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin: 0.25rem 0 1.5rem;
+}
+
+.ai-privacy { margin: 1rem 0; }
+
+.ai-builder-note {
+  font-size: 0.92rem;
+  color: var(--muted);
+  border-left: 3px solid var(--verify-green);
+  padding-left: 0.9rem;
+  margin: 1.25rem 0 2rem;
+}
+
+.ai-input-card,
+.ai-summary-card {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper-raised);
+  padding: 1.5rem 1.75rem;
+  margin: 1.5rem 0;
+}
+
+.ai-input-card > h2 { margin-top: 0; }
+
+.ai-progress-wrap { margin-top: 1rem; }
+
+.ai-memo-actions { margin: 1.25rem 0; align-items: center; }
+.ai-memo-note { color: var(--muted); }
+
+.ai-results { margin-top: 2.5rem; }
+
+.ai-summary-card {
+  border-left: 4px solid var(--ink);
+}
+.ai-summary-card h3 { margin-top: 0; }
+.ai-summary-card p { margin-bottom: 0; }
+
+.ai-group { margin: 2rem 0; }
+.ai-group-title { margin: 0 0 0.5rem; }
+.ai-group-note { font-size: 0.88rem; color: var(--muted); margin: 0 0 0.75rem; }
+
+.ai-result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.ai-result {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.85rem 0.25rem;
+}
+
+.ai-result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.ai-result-who { font-weight: 600; }
+
+.ai-result-time {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.ai-result-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ai-result-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+}
+
+.ai-reason {
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+}
+
+/* Metadata gap chips (missing sender/timestamp, short reply) read as caution. */
+.ai-reason.ai-flag {
+  color: var(--seal);
+  border-color: var(--seal);
+  background: var(--seal-tint);
+}
+
+/* Counts overview row */
+.ai-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+}
+
+.ai-count {
+  font-size: 0.82rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  background: var(--paper-raised);
+}
+.ai-count strong { font-family: var(--font-mono); }
+.ai-count-strong { border-left: 3px solid var(--verify-green); }
+.ai-count-possible { border-left: 3px solid var(--ink); }
+.ai-count-context { border-left: 3px solid var(--seal); }
+.ai-count-low { border-left: 3px solid var(--rule); }
+
+/* Score badges - never color-only: each carries its own text label. */
+.ai-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.ai-badge-strong { color: var(--verify-green); background: var(--green-tint); }
+.ai-badge-possible { color: var(--ink); background: var(--paper); }
+.ai-badge-low { color: var(--muted); background: var(--paper); }
+.ai-badge-context { color: var(--seal); background: var(--seal-tint); }
+
+.ai-gaps, .ai-checklist {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0;
+}
+.ai-gaps li, .ai-checklist li { margin: 0.4rem 0; }
+
+.ai-group details summary {
+  cursor: pointer;
+  padding: 0.4rem 0;
+}
+
+.ai-how { margin-top: 3rem; }

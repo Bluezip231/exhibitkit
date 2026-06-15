@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Isaiah Shawver">
+  <title>Privacy Policy - ExhibitKit</title>
+  <meta name="description" content="ExhibitKit's privacy policy in plain English: your message files are processed only in your browser and never uploaded. The only data we receive is what you send through the contact form.">
+  <link rel="canonical" href="https://exhibitkit.com/privacy.html">
+  <meta property="og:title" content="Privacy Policy - ExhibitKit">
+  <meta property="og:description" content="Your message files never leave your device. Plain-English privacy policy.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/privacy.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy Policy - ExhibitKit">
+  <meta name="twitter:description" content="Your message files never leave your device. Plain-English privacy policy: what ExhibitKit collects (almost nothing) and why.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>Privacy policy</h1>
+    <p class="hint">Last updated: June 15, 2026.</p>
+
+    <p class="notice notice-success"><strong>The short version:</strong> your message files are read and processed entirely in your browser and are never uploaded to us or anyone else. The only information we ever receive is what you choose to type into the contact form.</p>
+
+    <h2>Your message exports and exhibits</h2>
+    <p>When you use the <a href="app.html">builder</a> or the <a href="verify.html">verify</a> page, the files you choose are read by your own browser using the local File API, processed in memory, and turned into a PDF on your device. They are <strong>never</strong> sent to a server. We have no upload endpoint, no database, and no account system, so there is nowhere for your messages to go. This isn't only a promise - the site is served with a strict Content-Security-Policy that prevents the page from connecting anywhere except the static asset hosts listed below, so the browser itself blocks any attempt to transmit your file content. You can confirm it by watching your browser's network tab while you build an exhibit.</p>
+    <p>Nothing is stored, either: we don't use cookies, localStorage, sessionStorage, or any other persistence for your message content (or anything else). Refreshing the page erases your session entirely.</p>
+
+    <h2>AI Review Lab (optional feature)</h2>
+    <p>The <a href="ai-lab.html">AI Review Lab</a> is an optional feature that uses browser-based AI to rank your pasted messages by possible relevance to a claim. It has different network characteristics from the Builder — read this section carefully.</p>
+    <ul class="feature-list">
+      <li><strong>All the AI code runs from our own site, not a remote CDN.</strong> Both the Transformers.js library and the ONNX runtime's loader code are built into ExhibitKit and served from our own origin — no external JavaScript executes in the same browser context as your pasted messages. The AI Lab's Content-Security-Policy allows JavaScript code generation (<code>unsafe-eval</code>) because the ONNX runtime requires it for browser inference; this permission applies <strong>only to the AI Lab page</strong> and is not granted to the Builder, Verify, or any other page on the site. No third-party script host is listed, so code generation can only run on scripts served from our own origin.</li>
+      <li><strong>Only binary data is fetched from CDNs.</strong> On first use your browser downloads two kinds of binary file: the ONNX <em>WebAssembly runtime</em> (~21 MB) from <strong>jsDelivr</strong>, and the public <code>Xenova/all-MiniLM-L6-v2</code> <em>model weights</em> (~23 MB) from <strong>Hugging Face</strong>. These are data files — they are fetched by your browser, not sent from it, and the WebAssembly runs inside the browser's wasm sandbox, not as page script. They reveal your IP to those CDN hosts, as with any web resource.</li>
+      <li><strong>The AI Lab is designed so your message text is not uploaded.</strong> The embedding (the AI ranking step) runs entirely on-device using WebAssembly. The page's Content-Security-Policy limits outbound connections to the Hugging Face and jsDelivr hosts and explicitly omits our own origin, so scripts cannot POST message content back to ExhibitKit. However, CSP limits which hosts scripts <em>may</em> contact, not whether any particular request happens to carry your text — so our privacy claim here is that the page is carefully designed not to do that, rather than a mathematical guarantee.</li>
+      <li><strong>Your browser may cache the model files.</strong> The browser's Cache API stores the downloaded model files so subsequent visits skip the ~23 MB download. These are public model weights, not your messages.</li>
+      <li><strong>No message text is written to persistent storage.</strong> The AI Review Lab does not use localStorage, sessionStorage, IndexedDB, or cookies for your messages. Closing or refreshing the tab erases your session.</li>
+      <li><strong>The AI Lab is separate from the official PDF builder.</strong> The court-ready exhibit pipeline (Builder, Verify) makes zero network requests while processing your files and is the stronger privacy guarantee. Use the Builder for evidence preparation; the AI Lab is an optional review helper only.</li>
+    </ul>
+
+    <h2>The contact form</h2>
+    <p>The <a href="contact.html">contact form</a> is the one place data is intentionally sent. When you submit it, your name, email (if provided), topic, and message are sent to our hosting provider, Netlify, which stores the submission and notifies us so we can reply. We ask you not to include private message content or evidence in it. We use what you send only to respond to you; we don't sell it or use it for marketing.</p>
+
+    <h2>Ordinary web-hosting data</h2>
+    <p>Like any website, when your browser loads ExhibitKit it makes normal web requests that the servers involved can see (such as your IP address and browser type):</p>
+    <ul class="feature-list">
+      <li><strong>Netlify</strong> hosts the site and may keep standard server access logs.</li>
+      <li><strong>cdnjs</strong> (Cloudflare) serves the jsPDF library, <strong>Google Fonts</strong> serves the fonts, and <strong>jsDelivr</strong> serves the optional extended PDF font if you turn it on. Loading those assets reveals your IP to those CDNs, as with any site that uses them.</li>
+    </ul>
+    <p>We don't add any analytics, trackers, advertising, or third-party scripts beyond those asset hosts. After your first visit the app is cached by a service worker and works offline, so it can run without contacting anything at all.</p>
+
+    <h2>Children</h2>
+    <p>ExhibitKit isn't directed at children and doesn't knowingly collect information from them.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, we'll update the date above. Questions? <a href="contact.html">Contact us</a>.</p>
+
+    <p class="hint">This policy describes how the website handles data and is not legal advice.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /**
- * redact.js — pure text redaction helpers (kept DOM-free so they are
+ * redact.js - pure text redaction helpers (kept DOM-free so they are
  * directly testable).
  *
  * Redaction is true removal: the phrase is spliced out of the string the

@@ -1,5 +1,5 @@
 /**
- * pdf.js — exhibit PDF generation with jsPDF.
+ * pdf.js - exhibit PDF generation with jsPDF.
  *
  * Letter (612×792 pt), portrait, 1-inch (72 pt) margins.
  * Helvetica for body text, Courier for hashes / Bates numbers.
@@ -7,13 +7,13 @@
  * jsPDF's standard 14 fonts only cover the WinAnsi (cp1252) character set:
  * emoji and non-Latin scripts cannot be embedded. sanitizeForPdf() replaces
  * such runs with explicit placeholders ([emoji], [non-Latin text]) and the
- * app warns the user before generation — characters are never silently
+ * app warns the user before generation - characters are never silently
  * dropped.
  *
  * Optional extended font: the user can opt in to downloading DejaVu Sans
  * (~740 KB, public-domain-style license) which is then embedded so extended
  * Latin, Greek and Cyrillic print natively. Emoji, CJK and right-to-left
- * scripts stay as placeholders even then — jsPDF has no color-emoji support
+ * scripts stay as placeholders even then - jsPDF has no color-emoji support
  * and no bidi/shaping engine, and printing RTL text in the wrong order would
  * be worse than an honest placeholder in an evidence document.
  */
@@ -280,7 +280,7 @@ export function generateDeclarationPdf(opts) {
   const decl = buildDeclaration({
     caseInfo,
     messageCount,
-    precedingPages: null,   // unknown — printed as a blank to fill in
+    precedingPages: null,   // unknown - printed as a blank to fill in
     sources,
     redactedCount,
     exportDate,
@@ -306,7 +306,7 @@ function newDoc(extendedFontB64) {
 
 /**
  * Set the content font. With the extended font embedded, all content-bearing
- * text uses DejaVu Sans (single weight — DejaVu bold would double the
+ * text uses DejaVu Sans (single weight - DejaVu bold would double the
  * download); otherwise Helvetica with the requested style.
  */
 function setContentFont(doc, ctx, style = 'normal', size = 10) {
@@ -377,7 +377,7 @@ function drawSealBox(doc, ctx, sources, genDate) {
   const mono = (text, color = INK) => rows.push({ text, font: 'courier', style: 'normal', size: 8.5, color });
   const monoBold = (text, color = SEAL) => rows.push({ text, font: 'courier', style: 'bold', size: 8.5, color });
 
-  monoBold('EVIDENCE SEAL — SOURCE FILE INTEGRITY');
+  monoBold('EVIDENCE SEAL - SOURCE FILE INTEGRITY');
   rows.push({ gap: 6 });
   // With multiple sources, each file may have been hashed at a different
   // moment, so print its own "Hashed:" time inside its block. With one
@@ -396,7 +396,7 @@ function drawSealBox(doc, ctx, sources, genDate) {
   }
   rows.push({ gap: 6 });
   rows.push({
-    text: "Generated with ExhibitKit (exhibitkit.com) — all processing performed locally on the user's device.",
+    text: "Generated with ExhibitKit (exhibitkit.com) - all processing performed locally on the user's device.",
     font: 'helvetica', style: 'normal', size: 8, color: MUTED, wrap: boxW - pad * 2,
   });
 
@@ -491,7 +491,7 @@ function drawMessage(doc, ctx, m, y) {
     ? '(system message)'
     : sanitizeForPdf(m.sender || 'Unknown', ctx.ext).text;
   const dirSuffix = m.direction ? ` (${m.direction})` : '';
-  const metaText = `${m.rawTimestamp ? ' — ' + sanitizeForPdf(m.rawTimestamp, ctx.ext).text : ''}${dirSuffix}`;
+  const metaText = `${m.rawTimestamp ? ' - ' + sanitizeForPdf(m.rawTimestamp, ctx.ext).text : ''}${dirSuffix}`;
 
   doc.setFont('courier', 'normal');
   doc.setFontSize(8);
@@ -522,7 +522,7 @@ function drawMessage(doc, ctx, m, y) {
     if (y > CONTENT_BOTTOM) y = newMessagePage(doc, ctx);
     setContentFont(doc, ctx, 'normal', 10);
     doc.setTextColor(...MUTED);
-    doc.text(metaText.replace(/^ — /, ''), MARGIN, y);
+    doc.text(metaText.replace(/^ - /, ''), MARGIN, y);
   } else {
     if (metaText) doc.text(metaText, MARGIN + senderW, y);
     if (m.bates) drawBates(doc, m.bates, y);
@@ -627,7 +627,7 @@ function stampFooters(doc, sources, genDate) {
   const dateText = `Generated ${ymd(genDate)}`;
   const leftText = sources.length === 1
     ? `Source file SHA-256: ${truncatedHash(sources[0].hashHex)}`
-    : `Source files: ${sources.length} — SHA-256 hashes on certification page`;
+    : `Source files: ${sources.length} - SHA-256 hashes on certification page`;
 
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);

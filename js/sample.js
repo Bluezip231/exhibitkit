@@ -1,5 +1,5 @@
 /**
- * sample.js — a small fictional WhatsApp-format chat so visitors can try
+ * sample.js - a small fictional WhatsApp-format chat so visitors can try
  * the whole pipeline (hashing, parsing, selecting, redacting, generating)
  * without exporting anything first.
  *

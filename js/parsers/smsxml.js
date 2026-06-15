@@ -1,5 +1,5 @@
 /**
- * smsxml.js — parser for "SMS Backup & Restore" (Android) XML exports.
+ * smsxml.js - parser for "SMS Backup & Restore" (Android) XML exports.
  *
  *   <smses count="2">
  *     <sms address="+13045551234" date="1718200000000" type="1"

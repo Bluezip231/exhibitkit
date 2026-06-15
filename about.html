@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Isaiah Shawver">
+  <title>About ExhibitKit - How It Works &amp; Who Built It</title>
+  <meta name="description" content="What ExhibitKit is, how it works, who built it, and the privacy-first, no-backend design behind a free tool for turning text messages into court-ready exhibits.">
+  <link rel="canonical" href="https://exhibitkit.com/about.html">
+  <meta property="og:title" content="About ExhibitKit - How It Works &amp; Who Built It">
+  <meta property="og:description" content="How ExhibitKit works, who built it, and the privacy-first design behind a free tool for turning text messages into court-ready exhibits.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://exhibitkit.com/about.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About ExhibitKit - How It Works &amp; Who Built It">
+  <meta name="twitter:description" content="How ExhibitKit works, who built it, and the privacy-first design behind a free tool for turning text messages into court-ready exhibits.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ExhibitKit",
+    "url": "https://exhibitkit.com/",
+    "logo": "https://exhibitkit.com/assets/favicon.svg",
+    "description": "Free, privacy-first web tool that helps self-represented litigants, attorneys, and paralegals turn text message exports into court-ready PDF exhibits with SHA-256 integrity hashes. Built by Isaiah Shawver.",
+    "founder": { "@type": "Person", "name": "Isaiah Shawver", "sameAs": "https://x.com/ShawverTech" },
+    "sameAs": [
+      "https://github.com/bluezip231/exhibitkit",
+      "https://x.com/ShawverTech"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>About ExhibitKit</h1>
+    <p>ExhibitKit is a free tool that turns raw text-message exports - WhatsApp, Android SMS, Facebook Messenger, Instagram, or CSV - into clean, court-ready PDF exhibits. Each exhibit carries a SHA-256 integrity hash of your original export on every page, sequential Bates numbers, and a declaration-of-authenticity template.</p>
+
+    <h2>Who it's for</h2>
+    <p>People who need message history to tell their story in a formal setting but can't afford specialist software or a paralegal to format it: self-represented litigants in family court, small claims, and landlord/tenant disputes; budget-conscious attorneys and paralegals; and fraud victims documenting a scam for the police, the FTC/IC3, or their bank.</p>
+
+    <h2>How it works</h2>
+    <p>Everything happens in your browser. When you choose a file, ExhibitKit reads it locally, computes a cryptographic fingerprint of the original bytes, parses the messages, and builds the PDF on your own device. There is no upload, no account, and no database - and the site ships a strict Content-Security-Policy so the browser itself refuses to send your messages anywhere. You can watch your browser's network tab during a full session and confirm it: your messages never leave your device. <a href="verify.html">Anyone can re-verify the hash</a> later to prove the exhibit was built from exactly that file.</p>
+
+    <h2>Design principles</h2>
+    <ul class="feature-list">
+      <li><strong>Deterministic, not AI.</strong> Every step is plain, auditable code. For a tool meant to support the integrity of evidence, that's deliberate - there's no model guessing at your messages.</li>
+      <li><strong>Private by construction.</strong> The privacy promise isn't a policy you have to trust; it's enforced by doing all the work in the browser and by the Content-Security-Policy.</li>
+      <li><strong>Honest about limits.</strong> We never claim an exhibit "will be admissible" or is "certified." ExhibitKit helps with court-ready formatting and tamper-evidence; whether a court admits it depends on your jurisdiction's rules and your testimony. See the <a href="index.html#h-faq">FAQ</a>.</li>
+      <li><strong>Open source.</strong> The whole thing is on <a href="https://github.com/bluezip231/exhibitkit" rel="noopener">GitHub</a> - read it, audit it, or suggest a fix.</li>
+    </ul>
+
+    <h2>Who built it</h2>
+    <p>ExhibitKit is built by <strong>Isaiah Shawver</strong>, the maker of <a href="https://scamkit.com" rel="noopener">ScamKit.com</a>, a free tool for checking suspicious links, messages, and phone numbers and walking scam victims through recovery. The two are companions: ScamKit helps you act on a scam; ExhibitKit helps you document and prove it. You can reach Isaiah on the <a href="contact.html">contact page</a> or <a href="https://x.com/ShawverTech" rel="noopener">@ShawverTech on X</a>.</p>
+
+    <h2>Why it's free</h2>
+    <p>It's a static website with no servers to run, so it costs almost nothing to host - and the people who need it most are often the least able to pay. If you'd like to help keep it going, see <a href="support.html">ways to support it</a>.</p>
+
+    <p><a class="btn btn-large" href="app.html">Build your exhibit</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>

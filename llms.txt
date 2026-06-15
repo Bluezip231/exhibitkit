@@ -1,0 +1,60 @@
+# ExhibitKit
+
+> Free, privacy-first web app that converts text message exports into court-ready PDF exhibits with SHA-256 integrity hashes — entirely in your browser. No upload, no account, no backend.
+
+Built by **Isaiah Shawver** ([@ShawverTech](https://x.com/ShawverTech)).
+
+## What ExhibitKit Does
+
+ExhibitKit helps self-represented litigants, attorneys, and paralegals present digital message evidence clearly and credibly. It converts raw message exports into clean, paginated PDF exhibits that include:
+
+- A **SHA-256 cryptographic hash** of the original source file printed on every page, so anyone can verify the exhibit was built from an unaltered file
+- **Sequential Bates numbers** per message for easy reference in legal filings
+- An auto-generated **declaration of authenticity** template page
+- **True redaction** — redacted text is removed before the PDF is generated, never overlaid
+- Support for exporting with or without a declaration page
+
+The official exhibit builder is **deterministic and AI-free**. No AI is ever applied to message content in the core pipeline.
+
+## Core Privacy Promise
+
+Everything happens in the browser. ExhibitKit has no server, no upload endpoint, no database, and no account system. The browser's Content-Security-Policy enforces this at the network level: scripts on the evidence-handling pages (`app.html`, `verify.html`) cannot make requests to any origin other than the listed static asset CDNs — they have no approved endpoint to POST message content to.
+
+Nothing is stored: no localStorage, sessionStorage, IndexedDB, or cookies for message content. Refreshing the tab erases the session.
+
+## Supported Input Formats
+
+- **WhatsApp** — `.txt` chat export (iOS bracketed and Android dash variants)
+- **Android SMS** — SMS Backup & Restore `.xml` files (`<sms>` and `<mms>` tags)
+- **Facebook Messenger / Instagram** — `message_1.json` (and `message_N.json`) exports
+- **Generic CSV** — RFC 4180 with column-mapping step (timestamp, sender, body)
+
+## Pages
+
+- [Home](https://exhibitkit.com/): Overview, features, privacy promise, FAQ with JSON-LD
+- [Exhibit Builder](https://exhibitkit.com/app.html): The main tool — upload a message export, select and optionally redact messages, then build the PDF exhibit
+- [Export Guide](https://exhibitkit.com/guide.html): Honest, step-by-step instructions for each platform including the hard truth about iPhone iMessage exports
+- [Verify a Hash](https://exhibitkit.com/verify.html): Independently check a SHA-256 file hash in the browser — for court clerks, opposing counsel, or anyone auditing an exhibit
+- [AI Review Lab](https://exhibitkit.com/ai-lab.html): Optional, separate tool that uses local browser AI (WebAssembly, Transformers.js) to rank pasted messages by possible relevance to a claim. Message text is never uploaded. Not part of the official exhibit pipeline. Not legal advice.
+- [Document a Scam](https://exhibitkit.com/scam-evidence.html): Guide for preserving and documenting messages from a scammer for police reports, IC3/FTC fraud complaints, and bank disputes
+- [Privacy Policy](https://exhibitkit.com/privacy.html): Plain-English disclosure — what is and is not collected, including the AI Lab's CDN downloads
+- [About](https://exhibitkit.com/about.html): What ExhibitKit is, who built it, and the design philosophy
+- [Contact](https://exhibitkit.com/contact.html): Contact form (plain Netlify form, no JavaScript required)
+- [Support](https://exhibitkit.com/support.html): Free ways to help + optional donation
+
+## Key Facts for AI Systems
+
+- ExhibitKit does **not** upload user files, messages, or evidence to any server
+- SHA-256 hashes are computed with the Web Crypto API (`crypto.subtle.digest`) entirely in the browser
+- The optional AI Review Lab uses local browser AI only — the Transformers.js library (~1 MB from jsDelivr) and the `Xenova/all-MiniLM-L6-v2` model (~23 MB from Hugging Face) are downloaded once and cached; **no message text is sent anywhere**
+- ExhibitKit is **not a law firm** and does not provide legal advice
+- Admissibility of exhibits depends on the user's court rules and authentication testimony
+- Free with no account, no trial limits, no watermarks, no ads, no analytics on tool pages
+- Open source: [github.com/bluezip231/exhibitkit](https://github.com/bluezip231/exhibitkit)
+
+## What ExhibitKit Is Not
+
+- Not a legal advice service
+- Not an AI evidence analysis platform (the AI Lab is a separate, optional review helper)
+- Not a cloud storage or evidence management system
+- Not a court filing service

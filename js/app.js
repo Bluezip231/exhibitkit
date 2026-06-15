@@ -1,5 +1,5 @@
 /**
- * app.js — builder page orchestration and state.
+ * app.js - builder page orchestration and state.
  *
  * Everything lives in one in-memory state object. Nothing is persisted:
  * no localStorage, no sessionStorage, no cookies. A refresh wipes it all
@@ -124,7 +124,7 @@ function init() {
 }
 
 // ---------------------------------------------------------------------------
-// Step 1 — upload, hash, detect, parse
+// Step 1 - upload, hash, detect, parse
 // ---------------------------------------------------------------------------
 
 async function handleFiles(files) {
@@ -133,7 +133,7 @@ async function handleFiles(files) {
   $('csv-mapper').hidden = true;
 
   if (files.length > 1 && !files.every((f) => f.name.toLowerCase().endsWith('.json'))) {
-    return showError('Multiple files are only supported for Messenger/Instagram exports — drop the message_1.json, message_2.json… parts together. For every other format, upload one file at a time.');
+    return showError('Multiple files are only supported for Messenger/Instagram exports - drop the message_1.json, message_2.json… parts together. For every other format, upload one file at a time.');
   }
 
   const big = files.filter((f) => f.size > 50 * 1024 * 1024);
@@ -163,10 +163,18 @@ async function handleFiles(files) {
     return showError('That file appears to be empty. Re-export your messages and try again.');
   }
 
-  const format = detectFormat(sources[0].name, sources[0].text.slice(0, 2048));
+  // A generous sample so an HTML export's body markers are visible past its
+  // large inline stylesheet (Meta's exports put ~15 KB of CSS before the body).
+  const format = detectFormat(sources[0].name, sources[0].text.slice(0, 65536));
 
   if (format === 'zip') {
-    return showError('That is a .zip archive. Unzip it first, then upload the message_1.json file inside the conversation folder (Messenger/Instagram exports) — see the export guide for the exact path.', true);
+    return showError('That is a .zip archive. Unzip it first, then upload the message_1.json file inside the conversation folder (Messenger/Instagram exports) - see the export guide for the exact path.', true);
+  }
+  if (format === 'meta-html') {
+    return showError('This is the HTML version of a Facebook/Messenger/Instagram export, which ExhibitKit can’t read. Re-run Meta’s "Export your information", set the Format to JSON (not HTML), and upload the message_1.json file from the conversation folder.', true);
+  }
+  if (format === 'html') {
+    return showError('HTML files aren’t supported. If this came from a Facebook/Messenger export, re-run the export and choose the JSON format, then upload the message_1.json file.', true);
   }
   if (!format) {
     return showError(`We could not recognize this file. Supported formats: ${SUPPORTED_FORMATS_TEXT}.`, true);
@@ -309,7 +317,7 @@ function renderSeal() {
 
   const title = document.createElement('p');
   title.className = 'seal-title';
-  title.textContent = 'Evidence Seal — source file integrity';
+  title.textContent = 'Evidence Seal - source file integrity';
   seal.appendChild(title);
 
   for (const s of state.sources) {
@@ -488,7 +496,7 @@ function applyCsvMapping() {
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 — list, filters, selection, redaction
+// Step 2 - list, filters, selection, redaction
 // ---------------------------------------------------------------------------
 
 /** Stable identity for a sender (sent-SMS messages have an empty sender). */
@@ -721,7 +729,7 @@ function enterRedactMode(index, li) {
   bar.dataset.redactBar = '1';
 
   const hint = document.createElement('span');
-  hint.textContent = 'Select the exact text to redact in the message above, then press Confirm. Redaction removes the text from the PDF entirely — it is not a black box over hidden text.';
+  hint.textContent = 'Select the exact text to redact in the message above, then press Confirm. Redaction removes the text from the PDF entirely - it is not a black box over hidden text.';
   bar.appendChild(hint);
 
   const confirm = document.createElement('button');
@@ -764,7 +772,7 @@ function confirmRedaction(index, li) {
   };
 
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-    return fail('Nothing selected yet — highlight the text to redact inside this message, then press Confirm again.');
+    return fail('Nothing selected yet - highlight the text to redact inside this message, then press Confirm again.');
   }
   const range = sel.getRangeAt(0);
   if (!bodyEl.contains(range.startContainer) || !bodyEl.contains(range.endContainer)) {
@@ -777,13 +785,13 @@ function confirmRedaction(index, li) {
   pre.setEnd(range.startContainer, range.startOffset);
   const start = pre.toString().length;
   const length = range.toString().length;
-  if (length === 0) return fail('Nothing selected yet — highlight some text first.');
+  if (length === 0) return fail('Nothing selected yet - highlight some text first.');
 
   const { body: newBody, count } = redactRange(currentBody(index), start, length);
   if (count === 0) {
-    // Nothing was actually removed — never report a redaction that didn't
+    // Nothing was actually removed - never report a redaction that didn't
     // happen in an evidence document.
-    return fail('That selection could not be redacted — try selecting the text again.');
+    return fail('That selection could not be redacted - try selecting the text again.');
   }
   const prev = state.redactions.get(index);
   state.redactions.set(index, { body: newBody, count: (prev ? prev.count : 0) + count });
@@ -823,7 +831,7 @@ function applyPhraseRedaction() {
 }
 
 // ---------------------------------------------------------------------------
-// Step 3 — case details
+// Step 3 - case details
 // ---------------------------------------------------------------------------
 
 function deriveBatesPrefix(label) {
@@ -866,7 +874,7 @@ function setStep(n, mode) {
 }
 
 // ---------------------------------------------------------------------------
-// Step 4 — generate
+// Step 4 - generate
 // ---------------------------------------------------------------------------
 
 function validateCaseInfo() {
@@ -930,7 +938,7 @@ function buildDescription(info, exportMessages) {
     range = `, ${formatLongDate(min)} to ${formatLongDate(max)}`;
   }
 
-  return `Text message records — ${exportMessages.length.toLocaleString('en-US')} ` +
+  return `Text message records - ${exportMessages.length.toLocaleString('en-US')} ` +
     `message${exportMessages.length === 1 ? '' : 's'}${who}${range}`;
 }
 
@@ -973,12 +981,12 @@ function updateCharsetNotice() {
       ? `${n} selected message${basic === 1 ? '' : 's'} contain characters outside the standard PDF fonts. ` +
         `With the extended font embedded, ${remaining.toLocaleString('en-US')} will still contain placeholders ` +
         '(emoji or scripts the PDF engine cannot lay out, such as Arabic, Hebrew or CJK).'
-      : `${n} selected message${basic === 1 ? '' : 's'} contain extended characters — all of them will print natively with the embedded font.`;
+      : `${n} selected message${basic === 1 ? '' : 's'} contain extended characters - all of them will print natively with the embedded font.`;
   } else {
     $('charset-text').textContent =
       `${n} selected message${basic === 1 ? ' contains' : 's contain'} characters (such as emoji or non-Latin script) ` +
       'that cannot be embedded in the PDF’s standard fonts. They will appear as placeholders like [emoji] or ' +
-      '[non-Latin text] — nothing is silently dropped.';
+      '[non-Latin text] - nothing is silently dropped.';
   }
 }
 
@@ -1072,7 +1080,7 @@ async function onPreview() {
     fallback.hidden = !!win; // popup blocked → offer a plain link instead
     res.label.textContent = win
       ? 'Preview opened in a new tab. Nothing was downloaded or uploaded.'
-      : 'Preview ready — your browser blocked the new tab, use the link below.';
+      : 'Preview ready - your browser blocked the new tab, use the link below.';
   }
   endGeneration();
 }
