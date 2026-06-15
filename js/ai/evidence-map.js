@@ -247,9 +247,13 @@ const SHORT_AGREEMENT = [
 
 const RE_MONEY = /\$\s?\d|\b(pay|paid|pays|paying|owe|owed|owes|repay|repaid|rent|refund|loan|venmo|cashapp|zelle|paypal|dollars?|deposit)\b/i;
 // Narrower than RE_MONEY: requires evidence of an *actual amount*, not just a
-// money topic. Used in analyzeGaps() so "I'll pay you back Friday" (no figure)
-// still triggers the "may not clearly show an amount" warning.
-const RE_AMOUNT = /\$\s?\d|\b\d[\d,]*(?:\.\d{1,2})?\s*(?:dollars?|bucks?|k\b)|(?:half|full|all)\s+(?:of\s+)?(?:the\s+)?(?:rent|deposit|loan|amount|balance|total|payment)|\b(amount|total|balance)\b|\bdeposit\s+of\b/i;
+// money topic. Used in analyzeGaps() so "I'll pay you back Friday" or "What is
+// the balance?" (no figure) still triggers the "may not clearly show an amount"
+// warning. Matches a currency symbol + digit, a bare number (incl. decimals /
+// thousands separators), or an explicit fraction/full/all phrase tied to a
+// money noun. Bare topic words like "amount"/"total"/"balance" on their own do
+// NOT count — only an actual figure or fraction-of-X phrase does.
+const RE_AMOUNT = /\$\s?\d|\b\d[\d,]*(?:\.\d{1,2})?\b|(?:half|full|all)\s+(?:of\s+)?(?:the\s+)?(?:rent|deposit|loan|amount|balance|total|payment)\b/i;
 const RE_REPAIR = /\b(repair|repaired|repairs|fix|fixed|fixing|broken|break|leak|leaking|landlord|maintenance|plumber|heater|furnace|mold|mould|appliance|sink|toilet|outage)\b/i;
 // Broad threat set used only to test for *presence* in the gap analysis (per
 // spec): bare "stop"/"hurt"/"scared" are too ambiguous to assert as a reason.

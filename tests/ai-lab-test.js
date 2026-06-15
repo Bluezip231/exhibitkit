@@ -231,11 +231,19 @@ function eq(name, actual, expected) {
   check('gaps: "pay you back Friday" (no figure) triggers money amount gap',
     noAmountResult.gaps.some((g) => g.includes('claim involves money')));
 
-  // "$500" is a specific amount — gap must NOT appear.
-  const withAmountMsgs = parseMessages('1/1/26 12:00 - A: I\'ll pay you back $500 Friday');
-  const withAmountResult = buildEvidenceMap(withAmountMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
-  check('gaps: "pay you back $500 Friday" suppresses money amount gap',
-    !withAmountResult.gaps.some((g) => g.includes('claim involves money')));
+  // Helper: does the money-amount gap fire for `body` against a money claim?
+  const moneyGapFires = (body) => buildEvidenceMap(
+    parseMessages(`1/1/26 12:00 - A: ${body}`), [1, 0], [[1, 0]], 'they agreed to pay me back the rent',
+  ).gaps.some((g) => g.includes('claim involves money'));
+
+  // Bare topic words (amount/total/balance) with NO figure must still flag.
+  check('gaps: "What is the balance?" triggers money amount gap', moneyGapFires('What is the balance?'));
+  check('gaps: "What is the total amount?" triggers money amount gap', moneyGapFires('What is the total amount?'));
+
+  // An actual figure or fraction-of-X phrase suppresses the gap.
+  check('gaps: "pay you back $500 Friday" suppresses money amount gap', !moneyGapFires("I'll pay you back $500 Friday"));
+  check('gaps: "The balance is 500" suppresses money amount gap', !moneyGapFires('The balance is 500'));
+  check('gaps: "I\'ll pay half the rent Friday" suppresses money amount gap', !moneyGapFires("I'll pay half the rent Friday"));
 })();
 
 /* -------------- low-match non-truncation (data model) -------------------- */
