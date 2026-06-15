@@ -19,13 +19,16 @@
 #   - Builder/Verify (/app*, /verify*): Standard. form-action 'none' and no
 #     connect-src 'self' — a script on an evidence page has nowhere on the
 #     allowlist to POST message content. This is the no-egress privacy promise.
-#   - AI Lab (/ai-lab, /ai-lab.html): Transformers.js is VENDORED locally
-#     (js/ai/vendor/transformers.min.js) so no external JS executes in the same
-#     page context as pasted messages. script-src does NOT include cdn.jsdelivr.net.
-#     'wasm-unsafe-eval' + 'unsafe-eval' + blob: are still required for the ONNX
-#     WebAssembly runtime. connect-src adds jsDelivr + Hugging Face model hosts for
-#     GET-only binary downloads (wasm runtime + model weights — data, not script
-#     execution). connect-src still OMITS 'self'.
+#   - AI Lab (/ai-lab, /ai-lab.html): BOTH the Transformers.js bundle
+#     (js/ai/vendor/transformers.min.js) AND the executable ONNX runtime loader
+#     glue (js/ai/vendor/ort-wasm-simd-threaded.jsep.mjs) are VENDORED locally and
+#     imported from our own origin, so NO external JavaScript executes in the same
+#     page context as pasted messages. script-src is therefore 'self' only (plus
+#     'wasm-unsafe-eval' + 'unsafe-eval' + blob: for the WebAssembly runtime) and
+#     does NOT include cdn.jsdelivr.net. connect-src adds jsDelivr + Hugging Face
+#     for GET-only BINARY downloads — the ONNX wasm binary (jsDelivr) and the model
+#     weights (Hugging Face), data that runs in the wasm sandbox, never page script.
+#     connect-src still OMITS 'self', so there is no POST path back to our origin.
 #   - Contact success (/contact-success, /contact-success.html): standard tier.
 
 /*

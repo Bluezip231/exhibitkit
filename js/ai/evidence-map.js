@@ -14,12 +14,20 @@
  *   only organizes text by *possible* relevance for human review.
  *
  * PRIVACY
- *   All embedding happens in the browser. The only network traffic is GET
- *   requests that DOWNLOAD the public model weights and the library/runtime
- *   from a CDN/model host - user message text is never uploaded. Nothing is
- *   written to localStorage, sessionStorage, IndexedDB, or cookies by this
- *   module. (Transformers.js may cache the downloaded *model files* in the
- *   browser Cache API; those are public weights, not your messages.)
+ *   All embedding happens in the browser. No external JavaScript executes in
+ *   the same page context as pasted messages: the Transformers.js bundle AND
+ *   the ONNX runtime loader glue (the executable ".mjs") are both VENDORED into
+ *   this app and imported from our own origin (see TRANSFORMERS_URL and
+ *   ORT_WASM_PATHS below). The only cross-origin traffic is GET requests that
+ *   DOWNLOAD binary data: the ONNX WebAssembly runtime (".wasm") from jsDelivr
+ *   and the public model weights from Hugging Face. Those run in the wasm
+ *   sandbox / are model files - they are fetched, never sent. User message text
+ *   is never uploaded; the page's connect-src allowlist contains only those CDN
+ *   hosts and deliberately omits our own origin, so there is no POST path back
+ *   to ExhibitKit. Nothing is written to localStorage, sessionStorage,
+ *   IndexedDB, or cookies by this module. (The browser may cache the downloaded
+ *   *model/runtime files* in the Cache API; those are public binaries, not your
+ *   messages.)
  *
  * MODEL CHOICE
  *   Xenova/all-MiniLM-L6-v2 - a small (~23 MB quantized), well-supported
@@ -41,10 +49,38 @@
 
 export const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
 // Vendored locally so no external JS executes in the same context as pasted
-// messages. The bundle still fetches ONNX wasm binaries and model weights from
-// CDN via connect-src (binary data, not script execution) per its built-in
-// wasmPaths fallback pointing to cdn.jsdelivr.net.
+// messages. The bundle fetches the ONNX wasm *binary* and the model weights
+// from a CDN/model host via connect-src (binary data, not script execution) —
+// see ORT_WASM_PATHS below for how the executable ONNX loader glue is kept
+// local while the heavy wasm binary stays remote.
 export const TRANSFORMERS_URL = './vendor/transformers.min.js';
+
+// ONNX runtime artifact routing. Transformers.js 3.8.1 bundles onnxruntime-web
+// 1.22, which by default loads BOTH its loader glue (ort-*.jsep.mjs, executable
+// JavaScript) AND its wasm binary from cdn.jsdelivr.net. Executing remote JS in
+// the same page as pasted messages is exactly what we must avoid, so we split
+// the two via the object form of wasmPaths ({ mjs, wasm }) that ORT 1.22 reads:
+//
+//   - mjs:  the executable loader glue — VENDORED locally and dynamic-imported
+//           from our own origin, so it is covered by script-src 'self' and no
+//           external JavaScript ever runs in the message context.
+//   - wasm: the ~21 MB WebAssembly binary — left on jsDelivr and fetched as
+//           binary data via connect-src (it runs in the wasm sandbox, not as
+//           page script). Keeping it remote means connect-src needs NO 'self'
+//           entry, preserving the no-POST-back-to-our-origin promise, and the
+//           service worker still runtime-caches it for offline use.
+//
+// The .mjs and .wasm MUST come from the same package version (ABI lock-step);
+// keep ORT_PKG_VERSION matched to the vendored transformers.min.js version and
+// the vendored ort-*.jsep.mjs file.
+const ORT_PKG_VERSION = '3.8.1';
+const ORT_FILE = 'ort-wasm-simd-threaded.jsep';
+export const ORT_WASM_PATHS = {
+  // Root-absolute so it resolves the same no matter which module triggers the
+  // dynamic import (ai-lab.html is served from the site root).
+  mjs: `/js/ai/vendor/${ORT_FILE}.mjs`,
+  wasm: `https://cdn.jsdelivr.net/npm/@huggingface/transformers@${ORT_PKG_VERSION}/dist/${ORT_FILE}.wasm`,
+};
 
 // Hard caps and thresholds, named so they read clearly at the call site.
 export const MAX_MESSAGES = 1000;     // v1 performance ceiling
@@ -547,6 +583,10 @@ export async function loadEmbedder(onProgress) {
   if (env.backends?.onnx) {
     if (!env.backends.onnx.wasm) env.backends.onnx.wasm = {};
     env.backends.onnx.wasm.numThreads = 1;
+    // Route the executable ONNX loader glue to our vendored local copy and the
+    // wasm binary to jsDelivr (see ORT_WASM_PATHS). Set BEFORE pipeline() so it
+    // pre-empts the bundle's built-in jsDelivr default for wasmPaths.
+    env.backends.onnx.wasm.wasmPaths = ORT_WASM_PATHS;
   }
 
   // Pin the smallest quantized weights and the WASM backend explicitly. On

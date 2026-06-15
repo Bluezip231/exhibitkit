@@ -69,10 +69,13 @@ External dependencies, all loaded from CDNs and cached by the service worker:
   Mono) — used by the core app on every page.
 - **DejaVu Sans** (from jsDelivr) — fetched only if the user opts in to the
   extended PDF font.
-- **Transformers.js** (from jsDelivr) and the **`Xenova/all-MiniLM-L6-v2`**
-  model weights (from Hugging Face) — downloaded **only when the optional AI
-  Review Lab is run**, never on any other page. These are GET-only downloads of
-  public files; no message text is ever uploaded.
+- **Transformers.js** and the **ONNX runtime loader glue** (`ort-*.jsep.mjs`)
+  are **vendored** into the repo (`js/ai/vendor/`) and served from our own
+  origin — no third-party JavaScript executes in the AI Lab. Only **binary**
+  data is fetched from CDNs when the optional AI Review Lab is run: the ONNX
+  **WebAssembly runtime** (`.wasm`, ~21 MB, from jsDelivr) and the public
+  **`Xenova/all-MiniLM-L6-v2`** model weights (~23 MB, from Hugging Face). These
+  are GET-only downloads of public files; no message text is ever uploaded.
 
 ### Data flow
 
@@ -107,11 +110,13 @@ everything (a `beforeunload` warning guards against accidents).
   scripts anywhere. `connect-src` never includes `'self'` on any page, so a
   script has nowhere on the allowlist to POST message content. Only the contact
   pages relax `form-action` to `'self'` (for the no-JS Netlify form POST);
-  `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` additionally
-  allows GET-only access to jsDelivr and the Hugging Face model hosts (to
-  *download* public model files) plus `'wasm-unsafe-eval'`/`'unsafe-eval'` and
-  blob: workers for the WebAssembly runtime — never an upload path for message
-  text.
+  `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` keeps
+  `script-src 'self'` (no third-party script host — Transformers.js and the
+  ONNX loader glue are vendored locally) plus `'wasm-unsafe-eval'`/`'unsafe-eval'`
+  and blob: for the WebAssembly runtime, and `connect-src` allows GET-only
+  *binary* downloads from jsDelivr (the ONNX `.wasm`) and the Hugging Face model
+  hosts (model weights) — but still no `'self'`, so never an upload path for
+  message text.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify
@@ -160,20 +165,25 @@ without compromising the trustworthiness of the exhibit pipeline.
   message proves anything — only that it *may* relate or *may* need context.
 - **Local and private.** All embedding runs on-device. Message text is **not**
   sent to OpenAI, Claude, any paid API, or a backend (there is no backend). The
-  only network traffic is GET requests that download the public model weights
-  and the library/runtime from a CDN. Nothing is written to
-  localStorage/sessionStorage/IndexedDB/cookies; refreshing clears everything.
-  (Transformers.js may cache the downloaded model *files* in the browser Cache
-  API — public weights, not your messages.)
+  Transformers.js bundle and the executable ONNX loader glue are vendored and
+  run from our own origin, so no external JavaScript executes in the same page
+  context as pasted messages; the only cross-origin traffic is GET requests for
+  *binary* data (the ONNX `.wasm` runtime and the public model weights). Nothing
+  is written to localStorage/sessionStorage/IndexedDB/cookies; refreshing clears
+  everything. (The browser may cache the downloaded runtime/model *files* in the
+  Cache API — public binaries, not your messages.)
 - **Separate from the official builder.** The court-ready exhibit pipeline
   (`app.html` → `pdf.js`) stays **deterministic and AI-free**. AI never
   rewrites evidence, decides admissibility, gives legal advice, or changes the
   exhibit PDF. The AI memo is explicitly *not* part of the exhibit.
-- **Library/model pinning.** Transformers.js is pinned to the `@3` major line
-  (not `@latest`) so a future breaking major can't silently break the page. If
-  the model id ever stops resolving, swap `MODEL_ID` in
-  `js/ai/evidence-map.js` for the smallest available feature-extraction model
-  and note it in that file.
+- **Library/model pinning.** Transformers.js and the ONNX loader glue are
+  vendored at a fixed version (`3.8.1`) in `js/ai/vendor/`, so an upstream
+  change can't silently alter the page. The ONNX `.wasm` binary is fetched from
+  jsDelivr at the *same* pinned version (`ORT_PKG_VERSION` in
+  `js/ai/evidence-map.js`) — keep the vendored `.mjs` and that constant in
+  lock-step when upgrading, since the loader glue and wasm share an ABI. If the
+  model id ever stops resolving, swap `MODEL_ID` for the smallest available
+  feature-extraction model and note it in that file.
 
 **Limitations (stated plainly):** the model may miss relevant messages; it may
 rank irrelevant messages highly; short replies ("yes", "that works") need
