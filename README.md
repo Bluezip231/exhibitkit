@@ -112,11 +112,14 @@ everything (a `beforeunload` warning guards against accidents).
   pages relax `form-action` to `'self'` (for the no-JS Netlify form POST);
   `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` keeps
   `script-src 'self'` (no third-party script host — Transformers.js and the
-  ONNX loader glue are vendored locally) plus `'wasm-unsafe-eval'`/`'unsafe-eval'`
-  and blob: for the WebAssembly runtime, and `connect-src` allows GET-only
-  *binary* downloads from jsDelivr (the ONNX `.wasm`) and the Hugging Face model
-  hosts (model weights) — but still no `'self'`, so never an upload path for
-  message text.
+  ONNX loader glue are vendored locally) plus `'wasm-unsafe-eval'` and blob: for
+  the WebAssembly runtime. `'unsafe-eval'` is deliberately **not** granted: the
+  vendored bundle and ONNX glue load wasm via `WebAssembly.instantiate(Streaming)`
+  and contain no `eval()`/`new Function()` (the lone `Function("return this")`
+  is a dead-code `globalThis` shim). `connect-src` allows GET-only *binary*
+  downloads from jsDelivr (the ONNX `.wasm`) and the Hugging Face model hosts
+  (model weights) — but still no `'self'`, so never an upload path for message
+  text.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify
