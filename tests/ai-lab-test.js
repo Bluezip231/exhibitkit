@@ -220,9 +220,22 @@ function eq(name, actual, expected) {
   check('gaps: flags missing timestamps', result.gaps.some((g) => g.includes('missing timestamps')));
   check('gaps: flags no strong group', result.gaps.some((g) => g.includes('did not find a clear group')));
 
+  // Money-topic words alone (no actual figure) must still trigger the gap warning.
   const moneyMsgs = parseMessages('1/1/26 12:00 - A: we talked about the schedule for next week');
   const moneyResult = buildEvidenceMap(moneyMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
   check('gaps: money claim without amount flagged', moneyResult.gaps.some((g) => g.includes('claim involves money')));
+
+  // "I'll pay you back Friday" has money-topic words but no amount — gap must appear.
+  const noAmountMsgs = parseMessages('1/1/26 12:00 - A: I\'ll pay you back Friday');
+  const noAmountResult = buildEvidenceMap(noAmountMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
+  check('gaps: "pay you back Friday" (no figure) triggers money amount gap',
+    noAmountResult.gaps.some((g) => g.includes('claim involves money')));
+
+  // "$500" is a specific amount — gap must NOT appear.
+  const withAmountMsgs = parseMessages('1/1/26 12:00 - A: I\'ll pay you back $500 Friday');
+  const withAmountResult = buildEvidenceMap(withAmountMsgs, [1, 0], [[1, 0]], 'they agreed to pay me back the rent');
+  check('gaps: "pay you back $500 Friday" suppresses money amount gap',
+    !withAmountResult.gaps.some((g) => g.includes('claim involves money')));
 })();
 
 /* -------------- low-match non-truncation (data model) -------------------- */
