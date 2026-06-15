@@ -40,7 +40,11 @@
  */
 
 export const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
-export const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+// Vendored locally so no external JS executes in the same context as pasted
+// messages. The bundle still fetches ONNX wasm binaries and model weights from
+// CDN via connect-src (binary data, not script execution) per its built-in
+// wasmPaths fallback pointing to cdn.jsdelivr.net.
+export const TRANSFORMERS_URL = './vendor/transformers.min.js';
 
 // Hard caps and thresholds, named so they read clearly at the call site.
 export const MAX_MESSAGES = 1000;     // v1 performance ceiling
@@ -113,16 +117,19 @@ export function parseMessages(raw) {
       startNew(m[1].trim(), m[2].trim(), m[3].trim(), trimmed, true);
     } else if ((m = RE_DASH.exec(trimmed))) {
       startNew(m[1].trim(), m[2].trim(), m[3].trim(), trimmed, true);
-    } else if (
-      (m = RE_SENDER.exec(trimmed))
-      && m[1].trim().split(/\s+/).length <= 4
-      && !isNotePrefix(m[1])
-    ) {
-      // <= 4 words in the "sender" guards against treating a normal sentence
-      // that happens to contain a colon as a new sender; isNotePrefix() rejects
-      // generic label prefixes ("Reminder:", "Note:", "Update:") so they stay as
-      // plain message text instead of becoming a fake sender.
-      startNew('', m[1].trim(), m[2].trim(), trimmed, true);
+    } else if ((m = RE_SENDER.exec(trimmed)) && m[1].trim().split(/\s+/).length <= 4) {
+      if (isNotePrefix(m[1])) {
+        // Note-prefix lines (Reminder:, Note:, Update:, etc.) always start a
+        // NEW senderless plain message — never appended to the previous structured
+        // message. Without this branch a note-prefix line falls to the else block
+        // and gets silently appended (P2 bug: "Alice: first\nReminder: receipt"
+        // was producing one message instead of two).
+        startNew('', '', trimmed, trimmed, false);
+      } else {
+        // <= 4 words in the "sender" guards against treating a normal sentence
+        // that happens to contain a colon as a new sender.
+        startNew('', m[1].trim(), m[2].trim(), trimmed, true);
+      }
     } else {
       const prev = out[out.length - 1];
       if (prev && prev._structured) {

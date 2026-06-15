@@ -19,11 +19,14 @@
 #   - Builder/Verify (/app*, /verify*): Standard. form-action 'none' and no
 #     connect-src 'self' — a script on an evidence page has nowhere on the
 #     allowlist to POST message content. This is the no-egress privacy promise.
-#   - AI Lab (/ai-lab, /ai-lab.html): adds jsDelivr + Hugging Face hosts and
-#     data:/blob: to connect-src (GET-only download of public model weights),
-#     'wasm-unsafe-eval' + 'unsafe-eval' + blob: to script-src (WASM runtime),
-#     and worker-src 'self' blob:. connect-src still OMITS 'self', so pasted
-#     message text can never be POSTed back to our own origin.
+#   - AI Lab (/ai-lab, /ai-lab.html): Transformers.js is VENDORED locally
+#     (js/ai/vendor/transformers.min.js) so no external JS executes in the same
+#     page context as pasted messages. script-src does NOT include cdn.jsdelivr.net.
+#     'wasm-unsafe-eval' + 'unsafe-eval' + blob: are still required for the ONNX
+#     WebAssembly runtime. connect-src adds jsDelivr + Hugging Face model hosts for
+#     GET-only binary downloads (wasm runtime + model weights — data, not script
+#     execution). connect-src still OMITS 'self'.
+#   - Contact success (/contact-success, /contact-success.html): standard tier.
 
 /*
   X-Content-Type-Options: nosniff
@@ -56,10 +59,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /ai-lab
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /ai-lab.html
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /privacy
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
@@ -92,4 +95,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 /404.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+
+/contact-success
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+
+/contact-success.html
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'

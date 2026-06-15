@@ -18,7 +18,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v8';
+const VERSION = 'exhibitkit-v9';
 
 // Same-origin assets: must all cache for the app to work offline, so these
 // are cached atomically and a failure fails the install (retried next visit).

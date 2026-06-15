@@ -91,6 +91,13 @@ function eq(name, actual, expected) {
   const updateLine = parseMessages('Update: landlord called');
   eq('parser: "Update:" no fake sender', updateLine[0].sender, '');
 
+  // P2 regression: a note-prefix line following a real sender must start a NEW
+  // senderless message, never get appended to the previous structured message.
+  const p2 = parseMessages('Alice: first\nReminder: bring the receipt');
+  eq('parser P2: note-prefix after sender produces 2 messages', p2.length, 2);
+  eq('parser P2: second message sender is empty', p2[1].sender, '');
+  eq('parser P2: second message body is the full line', p2[1].body, 'Reminder: bring the receipt');
+
   // Real sender names must still parse as senders.
   const realSender = parseMessages('Isaiah: I paid Friday');
   eq('parser: real sender "Isaiah"', realSender[0].sender, 'Isaiah');
