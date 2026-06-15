@@ -63,8 +63,16 @@ tests/run.html    In-browser test suite (no framework) + 20k-message perf test
 tests/ai-lab-test.html  AI Review Lab tests (pure logic + on-demand model fixtures)
 ```
 
-Only two external dependencies, both loaded from CDNs and cached by the service
-worker: **jsPDF** (MIT) and Google Fonts (Spectral, Inter, IBM Plex Mono).
+External dependencies, all loaded from CDNs and cached by the service worker:
+
+- **jsPDF** (MIT, from cdnjs) and **Google Fonts** (Spectral, Inter, IBM Plex
+  Mono) — used by the core app on every page.
+- **DejaVu Sans** (from jsDelivr) — fetched only if the user opts in to the
+  extended PDF font.
+- **Transformers.js** (from jsDelivr) and the **`Xenova/all-MiniLM-L6-v2`**
+  model weights (from Hugging Face) — downloaded **only when the optional AI
+  Review Lab is run**, never on any other page. These are GET-only downloads of
+  public files; no message text is ever uploaded.
 
 ### Data flow
 
@@ -89,15 +97,21 @@ everything (a `beforeunload` warning guards against accidents).
   user opts in) the DejaVu font from jsDelivr. Verify with the browser's
   Network tab through a full session.
 - **Enforced by a strict Content-Security-Policy** (`_headers`, served by
-  Netlify), with page-specific overrides: `form-action 'none'` and no inline
-  scripts everywhere. The evidence-handling pages — `app.html`, `verify.html`
-  and `ai-lab.html` — drop `'self'` from `connect-src` entirely, so a script on
-  those pages has nowhere on the allowlist to POST message content. The
-  wildcard keeps `connect-src 'self'` only so `contact.html` can submit the
-  Netlify contact form. `ai-lab.html` additionally allows GET-only access to
-  the Transformers.js CDN and the Hugging Face model host (to *download* public
-  model files) plus `'wasm-unsafe-eval'` for the WebAssembly runtime — never an
-  upload path for message text.
+  Netlify). To avoid Netlify's header *merging* (a CSP on the `/*` wildcard is
+  appended to — not replaced by — a page-specific CSP, and browsers then enforce
+  the most restrictive intersection), the wildcard `/*` rule carries **only the
+  singleton security headers** (`X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`, `Permissions-Policy`) and **no CSP at all**. Every HTML page
+  — including both its pretty URL (`/app`) and `.html` form (`/app.html`) —
+  declares its **own complete CSP**, so no two CSPs ever combine. No inline
+  scripts anywhere. `connect-src` never includes `'self'` on any page, so a
+  script has nowhere on the allowlist to POST message content. Only the contact
+  pages relax `form-action` to `'self'` (for the no-JS Netlify form POST);
+  `app`, `verify` and `ai-lab` keep `form-action 'none'`. `ai-lab` additionally
+  allows GET-only access to jsDelivr and the Hugging Face model hosts (to
+  *download* public model files) plus `'wasm-unsafe-eval'`/`'unsafe-eval'` and
+  blob: workers for the WebAssembly runtime — never an upload path for message
+  text.
 - **No persistence.** No localStorage/sessionStorage/IndexedDB/cookies for
   message content — or anything else.
 - `crypto.subtle` requires a secure context: HTTPS in production (Netlify
