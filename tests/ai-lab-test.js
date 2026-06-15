@@ -79,6 +79,29 @@ function eq(name, actual, expected) {
   const url = parseMessages('Check https://example.com now');
   eq('parser: URL not split as sender', url[0].sender, '');
 
+  // Generic note/label prefixes must NOT become fake senders.
+  const reminder = parseMessages('Reminder: bring the receipt');
+  eq('parser: "Reminder:" stays body text', reminder[0].body, 'Reminder: bring the receipt');
+  eq('parser: "Reminder:" no fake sender', reminder[0].sender, '');
+
+  const note = parseMessages('Note: I paid Friday');
+  eq('parser: "Note:" stays body text', note[0].body, 'Note: I paid Friday');
+  eq('parser: "Note:" no fake sender', note[0].sender, '');
+
+  const updateLine = parseMessages('Update: landlord called');
+  eq('parser: "Update:" no fake sender', updateLine[0].sender, '');
+
+  // Real sender names must still parse as senders.
+  const realSender = parseMessages('Isaiah: I paid Friday');
+  eq('parser: real sender "Isaiah"', realSender[0].sender, 'Isaiah');
+  eq('parser: real sender body', realSender[0].body, 'I paid Friday');
+
+  const natalie = parseMessages('Natalie: That works');
+  eq('parser: real sender "Natalie"', natalie[0].sender, 'Natalie');
+
+  const mom = parseMessages('Mom: Call me later');
+  eq('parser: real sender "Mom"', mom[0].sender, 'Mom');
+
   eq('parser: empty input', parseMessages(''), []);
 })();
 

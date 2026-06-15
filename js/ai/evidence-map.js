@@ -59,6 +59,26 @@ const RE_DASH = /^(\d{1,4}[/.\-]\d{1,2}[/.\-]\d{1,4},?\s+\d{1,2}:\d{2}(?::\d{2})
 // Isaiah: Message text   (no '/' in the sender so URLs like https:// don't match)
 const RE_SENDER = /^([^:\n/]{1,40}?):\s(.+)$/;
 
+// Generic note/label prefixes that look like "Sender:" but are not people.
+// A bare colon-prefixed line beginning with one of these (e.g. "Reminder: bring
+// the receipt", "Note: I paid Friday", "Update: landlord called") stays as plain
+// message text with an empty sender, so we never invent a fake sender that would
+// skew AI grouping and missing-metadata flags. Real names ("Isaiah", "Natalie",
+// "Mom") are not on this list and keep parsing as senders. When unsure we err
+// toward plain text rather than inventing a sender.
+const NOTE_PREFIXES = new Set([
+  'reminder', 'note', 'notes', 'update', 'fyi', 'ps', 'pps', 'nb', 'memo',
+  'warning', 'important', 'todo', 'fwd', 'subject', 'info', 'alert', 'tip',
+  'tips', 'headsup', 'attention', 'caution', 'notice', 'status', 'summary',
+  'agenda', 'eta', 'edit', 'correction', 'disclaimer', 'draft', 're', 'urgent',
+  'reschedule', 'recap', 'announcement', 'ref', 'aside', 'context', 'background',
+]);
+
+/** True if a colon-prefix is a generic note/label word rather than a sender. */
+function isNotePrefix(sender) {
+  return NOTE_PREFIXES.has(String(sender).trim().toLowerCase().replace(/[^a-z]/g, ''));
+}
+
 /**
  * Parse pasted text into messages. Supports bracketed and dash WhatsApp-style
  * headers, bare "Sender: text" lines, and plain text-only lines. A line that
@@ -93,9 +113,15 @@ export function parseMessages(raw) {
       startNew(m[1].trim(), m[2].trim(), m[3].trim(), trimmed, true);
     } else if ((m = RE_DASH.exec(trimmed))) {
       startNew(m[1].trim(), m[2].trim(), m[3].trim(), trimmed, true);
-    } else if ((m = RE_SENDER.exec(trimmed)) && m[1].trim().split(/\s+/).length <= 4) {
+    } else if (
+      (m = RE_SENDER.exec(trimmed))
+      && m[1].trim().split(/\s+/).length <= 4
+      && !isNotePrefix(m[1])
+    ) {
       // <= 4 words in the "sender" guards against treating a normal sentence
-      // that happens to contain a colon (e.g. "Reminder: ...") as a new sender.
+      // that happens to contain a colon as a new sender; isNotePrefix() rejects
+      // generic label prefixes ("Reminder:", "Note:", "Update:") so they stay as
+      // plain message text instead of becoming a fake sender.
       startNew('', m[1].trim(), m[2].trim(), trimmed, true);
     } else {
       const prev = out[out.length - 1];
