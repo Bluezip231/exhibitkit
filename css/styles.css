@@ -850,10 +850,24 @@ details.faq summary {
   font-weight: 600;
   cursor: pointer;
   padding: 0.6rem 0;
-  list-style-position: outside;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  list-style: none;
+}
+
+details.faq summary::-webkit-details-marker { display: none; }
+
+details.faq summary::before {
+  content: "▶";
+  flex: none;
+  font-size: 0.72em;
+  color: currentColor;
+  transition: transform 150ms ease;
 }
 
 details.faq[open] summary { color: var(--seal); }
+details.faq[open] summary::before { transform: rotate(90deg); }
 
 details.faq p { margin: 0.25rem 0 1rem; color: var(--ink); }
 
