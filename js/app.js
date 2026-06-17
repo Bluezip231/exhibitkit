@@ -90,6 +90,8 @@ function init() {
   $('f-bates-prefix').addEventListener('input', () => { state.batesPrefixTouched = true; });
   $('f-exhibit').addEventListener('input', updateStepIndicator);
   $('f-declarant').addEventListener('input', updateStepIndicator);
+  $('f-exhibit').addEventListener('input', () => clearFieldError('f-exhibit', 'f-exhibit-error'));
+  $('f-declarant').addEventListener('input', () => clearFieldError('f-declarant', 'f-declarant-error'));
 
   $('sample-btn').addEventListener('click', () => handleFiles([makeSampleFile()]));
 
@@ -877,21 +879,38 @@ function setStep(n, mode) {
 // Step 4 - generate
 // ---------------------------------------------------------------------------
 
+function setFieldError(inputId, errorId, message) {
+  const input = $(inputId);
+  input.classList.add('field-error');
+  input.setAttribute('aria-invalid', 'true');
+  const err = $(errorId);
+  err.textContent = message;
+  err.hidden = false;
+}
+
+function clearFieldError(inputId, errorId) {
+  const input = $(inputId);
+  input.classList.remove('field-error');
+  input.removeAttribute('aria-invalid');
+  $(errorId).hidden = true;
+}
+
 function validateCaseInfo() {
   const info = readCaseInfo();
-  const problems = [];
-  $('f-exhibit').classList.remove('field-error');
-  $('f-declarant').classList.remove('field-error');
+  clearFieldError('f-exhibit', 'f-exhibit-error');
+  clearFieldError('f-declarant', 'f-declarant-error');
+  let firstInvalid = null;
   if (!info.exhibitLabel) {
-    $('f-exhibit').classList.add('field-error');
-    problems.push('an exhibit label');
+    setFieldError('f-exhibit', 'f-exhibit-error', 'Enter an exhibit label, e.g. Exhibit A.');
+    firstInvalid = firstInvalid || 'f-exhibit';
   }
   if (!info.declarantName) {
-    $('f-declarant').classList.add('field-error');
-    problems.push('your name');
+    setFieldError('f-declarant', 'f-declarant-error', 'Enter your full name — you are the declarant.');
+    firstInvalid = firstInvalid || 'f-declarant';
   }
-  if (problems.length) {
-    showGenError(`Before generating, add ${problems.join(' and ')} in Step 3.`);
+  if (firstInvalid) {
+    showGenError('Before generating, complete the highlighted required fields in Step 3.');
+    $(firstInvalid).focus();
     return null;
   }
   return info;

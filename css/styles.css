@@ -61,7 +61,7 @@ h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
 
 p { margin: 0.5rem 0 1rem; }
 
-a { color: var(--ink); text-decoration-color: var(--rule); text-underline-offset: 3px; }
+a { color: var(--ink); text-decoration-color: var(--muted); text-underline-offset: 3px; }
 a:hover { text-decoration-color: var(--ink); }
 
 code, .mono {
@@ -115,7 +115,7 @@ hr {
   font: inherit;
   color: var(--ink);
   text-decoration: underline;
-  text-decoration-color: var(--rule);
+  text-decoration-color: var(--muted);
   text-underline-offset: 3px;
   cursor: pointer;
 }
@@ -301,6 +301,14 @@ input[type="checkbox"] {
 .checkbox-row label { margin: 0; font-weight: 400; }
 
 .field-error { border-color: var(--seal) !important; }
+
+/* Inline, per-field validation message shown next to an invalid input. */
+.field-error-msg {
+  font-size: 0.82rem;
+  color: var(--seal);
+  font-weight: 500;
+  margin: 0.25rem 0 0;
+}
 
 /* --------------------------------------------------------------------------
    The Evidence Seal - signature component
@@ -1060,3 +1068,16 @@ kbd, .ui-name {
 }
 
 .ai-how { margin-top: 3rem; }
+
+/* --------------------------------------------------------------------------
+   Very small phones (below 480px): rein in display type and stack the
+   message-list filter toolbar so controls stay usable at ~320-414px.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 479px) {
+  h1 { font-size: 1.85rem; }
+  h2 { font-size: 1.3rem; }
+  .hero h1 { font-size: 2.05rem; }
+  .list-toolbar { grid-template-columns: 1fr; }
+  .dropzone { padding: 2rem 1rem; }
+}
