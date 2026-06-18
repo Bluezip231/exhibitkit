@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Isaiah Shawver">
   <title>How I Built ExhibitKit - Technical Overview</title>
-  <meta name="description" content="The technical overview of ExhibitKit: the stack (HTML, CSS, vanilla JavaScript, jsPDF, Web Crypto API), the local-only privacy model, SHA-256 hash verification, the UX for non-technical users, and where it's going next.">
+  <meta name="description" content="The technical overview of ExhibitKit: the stack (HTML, CSS, vanilla JavaScript, jsPDF, Web Crypto API), on-device AI (in-browser machine learning), the local-only privacy model, SHA-256 hash verification, and the UX for non-technical users.">
   <link rel="canonical" href="https://exhibitkit.com/how-i-built-this.html">
   <meta property="og:title" content="How I Built ExhibitKit - Technical Overview">
-  <meta property="og:description" content="The stack, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
+  <meta property="og:description" content="The stack, on-device AI, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://exhibitkit.com/how-i-built-this.html">
   <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
   <meta property="og:image:alt" content="ExhibitKit — turn message exports into court-ready PDF exhibits, privately in your browser.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="How I Built ExhibitKit - Technical Overview">
-  <meta name="twitter:description" content="The stack, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
+  <meta name="twitter:description" content="The stack, on-device AI, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
   <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
   <meta property="og:site_name" content="ExhibitKit">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -30,7 +30,7 @@
     "@context": "https://schema.org",
     "@type": "TechArticle",
     "headline": "How I Built ExhibitKit",
-    "description": "Technical overview of ExhibitKit: the stack, the local-only privacy model, SHA-256 hash verification, the UX for non-technical users, and future plans.",
+    "description": "Technical overview of ExhibitKit: the stack, on-device AI (in-browser machine learning), the local-only privacy model, SHA-256 hash verification, the UX for non-technical users, and future plans.",
     "author": { "@type": "Person", "name": "Isaiah Shawver", "sameAs": "https://x.com/ShawverTech" },
     "publisher": {
       "@type": "Organization",
@@ -80,6 +80,15 @@
     <h2>Forensics: SHA-256 hash verification</h2>
     <p>A digital exhibit is only as good as its tamper-evidence. When you load a file, ExhibitKit computes the SHA-256 hash of the original bytes and prints that fingerprint on the cover, in the declaration, and in the footer of every page. Anyone - opposing counsel, a clerk, a judge - can later drop the same source file into the <a href="verify.html">verify page</a> and confirm the hash matches, proving the exhibit was built from exactly that file and nothing was altered after the fact. The hashing is deterministic and runs the same in any modern browser.</p>
 
+    <h2>AI: on-device machine learning (the Review Lab)</h2>
+    <p>The most technically involved part of the project is the optional <a href="ai-lab.html">AI Review Lab</a> - and it runs real machine learning <em>entirely in your browser</em>, with no server and nothing uploaded.</p>
+    <ul class="feature-list">
+      <li><strong>A real embedding model.</strong> It loads <code>all-MiniLM-L6-v2</code>, a ~23&nbsp;MB quantized sentence-embedding model, through Transformers.js on top of the ONNX WebAssembly runtime - so the inference happens on the user's own device, not a backend.</li>
+      <li><strong>Semantic ranking, not keyword search.</strong> You describe a claim ("he agreed to pay half the rent"); the Lab turns your claim and every pasted message into 384-dimensional vectors, ranks the messages by cosine similarity, then groups them (likely related / possibly related / needs context) with deliberately hedged labels and a gap analysis.</li>
+      <li><strong>Private by construction.</strong> The model files download once from a public CDN, but your message text is never sent anywhere - the page's Content-Security-Policy doesn't include a route back to our own origin, so there is no upload path at all. The math runs in the WebAssembly sandbox on your machine.</li>
+    </ul>
+    <p><strong>And just as deliberately, the exhibit builder itself uses no AI.</strong> Court evidence should be deterministic and auditable, so categorizing, hashing, redacting and PDF generation are all plain, inspectable code. The Lab is a separate, optional <em>review aid</em> - it never touches the exhibit PDF and never judges the strength of a case. Knowing where machine learning belongs (helping a person find relevant messages) and where it doesn't (formatting sworn evidence) was one of the core design decisions of the whole project.</p>
+
     <h2>UX: simple evidence organization for non-technical people</h2>
     <p>Most people who need this are not engineers - they're self-represented litigants, fraud victims, or busy paralegals. So the builder is a plain four-step wizard, and a few touches do the heavy lifting:</p>
     <ul class="feature-list">
@@ -90,7 +99,7 @@
     </ul>
 
     <h2>What's next</h2>
-    <p>The builder is deliberately AI-free and stays that way - evidence formatting should be deterministic and auditable. The experiment I'm most interested in lives separately in the optional <a href="ai-lab.html">AI Review Lab</a>: a small sentence-embedding model that runs <em>entirely in the browser</em> to help organize pasted messages by possible relevance to a claim. The future idea is to grow that AI-powered evidence mapping further - always on-device, always as a review aid rather than a judge of your case.</p>
+    <p>The direction I'm most excited about is growing the on-device AI: larger or multilingual embedding models as browser ML matures, optional local summaries of a conversation, and smarter grouping - always running on the user's device, always a review aid rather than a judge of the case. On the builder side: more export formats and richer redaction tooling. The builder stays deterministic and AI-free by design.</p>
 
     <p>Want the short version of who and why? See the <a href="about.html">about page</a>.</p>
 
