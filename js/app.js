@@ -681,7 +681,7 @@ function buildRow(index) {
     undoBtn.setAttribute('aria-label', `Undo redactions in message ${index + 1}`);
     undoBtn.addEventListener('click', () => {
       state.redactions.delete(index);
-      replaceRow(index, li);
+      afterRedactionChange(index, li);
     });
     actions.appendChild(undoBtn);
   }
@@ -709,6 +709,22 @@ function replaceRow(index, li) {
   const fresh = buildRow(index);
   li.replaceWith(fresh);
   return fresh;
+}
+
+/**
+ * After a single message's redactions change (per-message redact or undo),
+ * refresh the Evidence Map so its category counts and timeline snippets reflect
+ * the redacted body - otherwise the timeline could keep showing text that was
+ * just redacted out of the message and the PDF. Re-render the whole list when a
+ * category filter is active (membership may have changed, or the refresh may
+ * have cleared an emptied filter); otherwise update the one row in place.
+ */
+function afterRedactionChange(index, li) {
+  const hadFilter = state.categoryFilter !== null;
+  renderEvidenceMap();
+  if (hadFilter) renderList(true);
+  else replaceRow(index, li);
+  updateCharsetNotice();
 }
 
 function bulkSelect(on) {
@@ -747,6 +763,14 @@ function renderEvidenceMap() {
     bodyOf, keyOf: senderKey, labelOf: (m) => senderLabel(m),
   });
   state.categorySets = result.byCategory;
+
+  // If the active filter's category no longer matches anything (e.g. its only
+  // keyword was just redacted), clear it. Otherwise the chip is disabled below
+  // while the filter stays set, leaving the list filtered to an empty set with
+  // no way to click the chip to clear it.
+  if (state.categoryFilter && result.counts[state.categoryFilter] === 0) {
+    state.categoryFilter = null;
+  }
 
   const chips = $('em-chips');
   chips.textContent = '';
@@ -939,7 +963,7 @@ function confirmRedaction(index, li) {
 
   sel.removeAllRanges();
   state.redactingIndex = null;
-  replaceRow(index, li);
+  afterRedactionChange(index, li);
 }
 
 /** Redact every occurrence of a typed phrase across the selected messages. */
