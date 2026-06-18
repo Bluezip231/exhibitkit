@@ -2,8 +2,12 @@
 // builder: invalid fields get aria-invalid + a visible inline message, focus
 // moves to the first invalid field, and the error clears as the user types.
 const { test, expect } = require('@playwright/test');
+const { blockExternal } = require('./_helpers');
 
 test('builder flags missing required case fields accessibly', async ({ page }) => {
+  // Validation fails before any PDF work, so jsPDF is never needed; block the
+  // CDN so app.html's deferred jsPDF script can't hang the page load.
+  await blockExternal(page);
   await page.goto('/app.html');
 
   // The built-in sample runs the real pipeline and reveals all wizard steps.

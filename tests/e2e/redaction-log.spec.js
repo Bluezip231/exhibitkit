@@ -6,16 +6,10 @@
 // test runs fully offline (CDN blocked) and asserts the DOM rather than trying
 // to read text out of a generated PDF.
 const { test, expect } = require('@playwright/test');
-
-async function goOffline(page) {
-  await page.route('**/cdnjs.cloudflare.com/**', (route) => route.abort());
-  await page.route('**/cdn.jsdelivr.net/**', (route) => route.abort());
-  await page.route('**/huggingface.co/**', (route) => route.abort());
-  await page.route('**/*.wasm', (route) => route.abort());
-}
+const { blockExternal } = require('./_helpers');
 
 test('redacting + excluding logs truthful counts on screen, no PII categories', async ({ page }) => {
-  await goOffline(page);
+  await blockExternal(page);
   await page.goto('/app.html');
 
   await page.click('[data-sample="whatsapp"]');

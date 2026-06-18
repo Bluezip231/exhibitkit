@@ -8,11 +8,10 @@
 // runtime or wasm, this test fails loudly instead of silently relying on CI
 // network access.
 const { test, expect } = require('@playwright/test');
+const { blockExternal } = require('./_helpers');
 
 test('AI Lab pure-logic suite passes (offline)', async ({ page }) => {
-  await page.route('**/cdn.jsdelivr.net/**', (route) => route.abort());
-  await page.route('**/huggingface.co/**', (route) => route.abort());
-  await page.route('**/*.wasm', (route) => route.abort());
+  await blockExternal(page);
 
   await page.goto('/tests/ai-lab-test.html');
 

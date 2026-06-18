@@ -4,6 +4,7 @@
 // `pageerror` fires on any uncaught exception (a syntax error, a bad import, a
 // throw during init). Console warnings are intentionally NOT failed on.
 const { test, expect } = require('@playwright/test');
+const { blockExternal } = require('./_helpers');
 
 const PAGES = [
   'index.html',
@@ -23,11 +24,9 @@ const PAGES = [
 
 for (const path of PAGES) {
   test(`${path} loads with no uncaught JS errors`, async ({ page }) => {
-    // The AI Lab loads its model only on user action; make sure a stray
-    // load-time fetch of the 23 MB model/runtime can't happen in CI.
-    await page.route('**/cdn.jsdelivr.net/**', (route) => route.abort());
-    await page.route('**/huggingface.co/**', (route) => route.abort());
-    await page.route('**/*.wasm', (route) => route.abort());
+    // Keep the smoke check hermetic: no external CDN/font fetch can hang the
+    // page's load event (and the AI Lab's 23 MB model can't load in CI).
+    await blockExternal(page);
 
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));

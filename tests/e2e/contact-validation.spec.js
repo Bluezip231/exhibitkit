@@ -2,8 +2,10 @@
 // form (js/contact.js). With JS enabled it shows inline messages and blocks
 // submission; the native no-JS Netlify POST path is unaffected.
 const { test, expect } = require('@playwright/test');
+const { blockExternal } = require('./_helpers');
 
 test('empty message is flagged inline and blocks submit', async ({ page }) => {
+  await blockExternal(page);
   await page.goto('/contact.html');
 
   await page.click('#contact-form button[type="submit"]');
@@ -22,6 +24,7 @@ test('empty message is flagged inline and blocks submit', async ({ page }) => {
 });
 
 test('malformed email is rejected, blank email is allowed', async ({ page }) => {
+  await blockExternal(page);
   await page.goto('/contact.html');
   await page.fill('#c-message', 'Hello');
 

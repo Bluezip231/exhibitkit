@@ -3,13 +3,7 @@
 // Map - with no network access. The route().abort() guards enforce that this
 // flow never reaches a CDN or the AI model: the Evidence Map is pure local JS.
 const { test, expect } = require('@playwright/test');
-
-async function goOffline(page) {
-  await page.route('**/cdnjs.cloudflare.com/**', (route) => route.abort());
-  await page.route('**/cdn.jsdelivr.net/**', (route) => route.abort());
-  await page.route('**/huggingface.co/**', (route) => route.abort());
-  await page.route('**/*.wasm', (route) => route.abort());
-}
+const { blockExternal } = require('./_helpers');
 
 const DEMOS = [
   { id: 'whatsapp', label: 'WhatsApp' },
@@ -19,7 +13,7 @@ const DEMOS = [
 
 for (const demo of DEMOS) {
   test(`${demo.label} demo parses and reveals the list + evidence map`, async ({ page }) => {
-    await goOffline(page);
+    await blockExternal(page);
     await page.goto('/app.html');
 
     await page.click(`[data-sample="${demo.id}"]`);
@@ -33,7 +27,7 @@ for (const demo of DEMOS) {
 }
 
 test('CSV demo opens the column mapper, applies, and reveals the list + map', async ({ page }) => {
-  await goOffline(page);
+  await blockExternal(page);
   await page.goto('/app.html');
 
   await page.click('[data-sample="csv"]');
@@ -45,7 +39,7 @@ test('CSV demo opens the column mapper, applies, and reveals the list + map', as
 });
 
 test('evidence map category chip filters the list and toggles back off', async ({ page }) => {
-  await goOffline(page);
+  await blockExternal(page);
   await page.goto('/app.html');
   await page.click('[data-sample="whatsapp"]');
   await expect(page.locator('#message-list li.msg')).not.toHaveCount(0);

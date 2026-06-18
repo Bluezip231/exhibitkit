@@ -3,8 +3,12 @@
 // failures. Contract: tests/run.js sets #summary to "<passed> / <total>
 // tests passed" and appends <li class="pass|fail"> to #results.
 const { test, expect } = require('@playwright/test');
+const { blockExternal } = require('./_helpers');
 
 test('parser / hash / PDF suite passes', async ({ page }) => {
+  // run.html loads jsPDF from cdnjs (defer); block it so navigation can't hang
+  // on the CDN. The auto-run pure-logic suite never needs it.
+  await blockExternal(page);
   await page.goto('/tests/run.html');
 
   const summary = page.locator('#summary');
