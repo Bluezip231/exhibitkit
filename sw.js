@@ -18,7 +18,7 @@
  * memory, and this worker only handles GET requests for static assets.
  */
 
-const VERSION = 'exhibitkit-v9';
+const VERSION = 'exhibitkit-v11';
 
 // Same-origin assets: must all cache for the app to work offline, so these
 // are cached atomically and a failure fails the install (retried next visit).
@@ -35,9 +35,12 @@ const PRECACHE_LOCAL = [
   'support.html',
   'privacy.html',
   'ai-lab.html',
+  'how-i-built-this.html',
   '404.html',
   'css/styles.css',
   'js/app.js',
+  'js/keywords.js',
+  'js/evidence-map-lite.js',
   'js/ai/ai-lab.js',
   'js/ai/evidence-map.js',
   'js/verify.js',
@@ -54,6 +57,7 @@ const PRECACHE_LOCAL = [
   'js/parsers/meta.js',
   'js/parsers/csv.js',
   'assets/favicon.svg',
+  'assets/sample-exhibit.pdf',
   'manifest.webmanifest',
 ];
 

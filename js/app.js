@@ -18,7 +18,9 @@ import {
 } from './pdf.js';
 import { formatLongDate } from './declaration.js';
 import { redactPhrase, redactRange } from './redact.js';
-import { makeSampleFile } from './sample.js';
+import { SAMPLES } from './sample.js';
+import { CATEGORIES } from './keywords.js';
+import { categorize, buildTimeline } from './evidence-map-lite.js';
 
 const CHUNK = 200; // message rows rendered per "Load more"
 
@@ -32,6 +34,8 @@ const state = {
   csvRows: null,          // parsed rows while the mapping UI is open
   whatsappVariant: null,
   filtered: [],           // indices passing the current filters
+  categoryFilter: null,   // active Evidence Map category id, or null
+  categorySets: null,     // {categoryId -> Set<index>} from the Evidence Map
   renderedCount: 0,
   redactingIndex: null,
   batesPrefixTouched: false,
@@ -90,8 +94,14 @@ function init() {
   $('f-bates-prefix').addEventListener('input', () => { state.batesPrefixTouched = true; });
   $('f-exhibit').addEventListener('input', updateStepIndicator);
   $('f-declarant').addEventListener('input', updateStepIndicator);
+  $('f-exhibit').addEventListener('input', () => clearFieldError('f-exhibit', 'f-exhibit-error'));
+  $('f-declarant').addEventListener('input', () => clearFieldError('f-declarant', 'f-declarant-error'));
 
-  $('sample-btn').addEventListener('click', () => handleFiles([makeSampleFile()]));
+  const sampleMap = Object.fromEntries(SAMPLES.map((s) => [s.id, s.make]));
+  $('sample-row').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-sample]');
+    if (btn && sampleMap[btn.dataset.sample]) handleFiles([sampleMap[btn.dataset.sample]()]);
+  });
 
   $('redact-phrase-toggle').addEventListener('click', () => {
     const form = $('phrase-redact-form');
@@ -255,6 +265,8 @@ function finishParse() {
   renderSummary();
   suggestExportMethod();
   populateSenderFilter();
+  state.categoryFilter = null;
+  renderEvidenceMap();
   revealSteps();
   renderList(true);
   updateCharsetNotice();
@@ -549,6 +561,8 @@ function computeFiltered() {
   const meName = declarantName(); // read once, not per-message in the hot loop
 
   state.filtered = state.messages.filter((m) => {
+    if (state.categoryFilter && state.categorySets &&
+        !state.categorySets[state.categoryFilter].has(m.index)) return false;
     if (senderFilter && senderKey(m) !== senderFilter) return false;
     if (from || to) {
       if (!m.timestamp) return false;
@@ -667,7 +681,7 @@ function buildRow(index) {
     undoBtn.setAttribute('aria-label', `Undo redactions in message ${index + 1}`);
     undoBtn.addEventListener('click', () => {
       state.redactions.delete(index);
-      replaceRow(index, li);
+      afterRedactionChange(index, li);
     });
     actions.appendChild(undoBtn);
   }
@@ -697,6 +711,22 @@ function replaceRow(index, li) {
   return fresh;
 }
 
+/**
+ * After a single message's redactions change (per-message redact or undo),
+ * refresh the Evidence Map so its category counts and timeline snippets reflect
+ * the redacted body - otherwise the timeline could keep showing text that was
+ * just redacted out of the message and the PDF. Re-render the whole list when a
+ * category filter is active (membership may have changed, or the refresh may
+ * have cleared an emptied filter); otherwise update the one row in place.
+ */
+function afterRedactionChange(index, li) {
+  const hadFilter = state.categoryFilter !== null;
+  renderEvidenceMap();
+  if (hadFilter) renderList(true);
+  else replaceRow(index, li);
+  updateCharsetNotice();
+}
+
 function bulkSelect(on) {
   // state.filtered is kept current by the filter inputs (each re-renders),
   // so reuse it rather than recomputing here and again inside renderList.
@@ -715,6 +745,141 @@ function updateSelectionCount() {
     (state.filtered.length !== state.messages.length
       ? ` · ${state.filtered.length.toLocaleString('en-US')} shown`
       : '');
+}
+
+// --- Evidence map (deterministic, on-screen only) --------------------------
+
+/**
+ * Categorize the parsed messages by keyword and build a factual timeline, then
+ * paint the "Evidence map" panel. Pure keyword logic - no AI, no network. Body
+ * accessors are redaction-aware so categories/snippets reflect what will print.
+ */
+function renderEvidenceMap() {
+  const panel = $('evidence-map');
+  if (!panel) return;
+
+  const bodyOf = (m) => currentBody(m.index);
+  const result = categorize(state.messages, {
+    bodyOf, keyOf: senderKey, labelOf: (m) => senderLabel(m),
+  });
+  state.categorySets = result.byCategory;
+
+  // If the active filter's category no longer matches anything (e.g. its only
+  // keyword was just redacted), clear it. Otherwise the chip is disabled below
+  // while the filter stays set, leaving the list filtered to an empty set with
+  // no way to click the chip to clear it.
+  if (state.categoryFilter && result.counts[state.categoryFilter] === 0) {
+    state.categoryFilter = null;
+  }
+
+  const chips = $('em-chips');
+  chips.textContent = '';
+  for (const c of CATEGORIES) {
+    const n = result.counts[c.id];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ai-count em-chip';
+    btn.dataset.category = c.id;
+    btn.disabled = n === 0;
+    btn.setAttribute('aria-pressed', String(state.categoryFilter === c.id));
+    btn.textContent = `${c.label} · ${n.toLocaleString('en-US')}`;
+    btn.addEventListener('click', () => toggleCategoryFilter(c.id));
+    chips.appendChild(btn);
+  }
+
+  // People involved: not a body-text filter, so it expands an inline list.
+  const peopleList = $('em-people');
+  const peopleBtn = document.createElement('button');
+  peopleBtn.type = 'button';
+  peopleBtn.className = 'ai-count em-chip';
+  peopleBtn.setAttribute('aria-expanded', String(!peopleList.hidden));
+  peopleBtn.textContent = `People involved · ${result.people.length.toLocaleString('en-US')}`;
+  peopleBtn.addEventListener('click', () => {
+    const open = peopleList.hidden;
+    peopleList.hidden = !open;
+    peopleBtn.setAttribute('aria-expanded', String(open));
+  });
+  chips.appendChild(peopleBtn);
+
+  peopleList.textContent = '';
+  for (const p of result.people) {
+    const li = document.createElement('li');
+    li.textContent = `${p.label} — ${p.count.toLocaleString('en-US')} message${p.count === 1 ? '' : 's'}`;
+    peopleList.appendChild(li);
+  }
+
+  renderTimeline(bodyOf);
+  panel.hidden = false;
+}
+
+function toggleCategoryFilter(id) {
+  state.categoryFilter = state.categoryFilter === id ? null : id;
+  for (const btn of $('em-chips').querySelectorAll('[data-category]')) {
+    btn.setAttribute('aria-pressed', String(btn.dataset.category === state.categoryFilter));
+  }
+  renderList(true);
+}
+
+function renderTimeline(bodyOf) {
+  const tl = $('em-timeline');
+  tl.textContent = '';
+  const { days, withoutTimestamp, truncated } = buildTimeline(state.messages, {
+    bodyOf, labelOf: (m) => senderLabel(m), maxEntries: 400,
+  });
+
+  const notes = [];
+  if (days.length === 0) {
+    notes.push('No messages carry a timestamp, so a timeline cannot be built for this export.');
+  } else if (withoutTimestamp > 0) {
+    notes.push(`${withoutTimestamp.toLocaleString('en-US')} message${withoutTimestamp === 1 ? '' : 's'} without a timestamp ${withoutTimestamp === 1 ? 'is' : 'are'} not shown below.`);
+  }
+  if (truncated) notes.push('Showing the first 400 timeline entries.');
+  const note = $('em-timeline-note');
+  note.textContent = notes.join(' ');
+  note.hidden = notes.length === 0;
+
+  const labelOf = (catId) => (CATEGORIES.find((c) => c.id === catId) || {}).label || catId;
+  for (const day of days) {
+    const dayLi = document.createElement('li');
+    dayLi.className = 'em-day';
+    const h = document.createElement('p');
+    h.className = 'em-day-label';
+    h.textContent = day.dateLabel;
+    dayLi.appendChild(h);
+
+    const ol = document.createElement('ol');
+    ol.className = 'em-entries';
+    for (const e of day.entries) {
+      const li = document.createElement('li');
+      li.className = 'em-entry';
+
+      const time = document.createElement('span');
+      time.className = 'em-entry-time';
+      time.textContent = e.time;
+      li.appendChild(time);
+
+      const sender = document.createElement('span');
+      sender.className = 'em-entry-sender';
+      sender.textContent = e.sender;
+      li.appendChild(sender);
+
+      for (const catId of e.categories) {
+        const badge = document.createElement('span');
+        badge.className = 'ai-reason em-badge';
+        badge.textContent = labelOf(catId);
+        li.appendChild(badge);
+      }
+
+      const snip = document.createElement('span');
+      snip.className = 'em-entry-snippet';
+      snip.textContent = e.snippet;
+      li.appendChild(snip);
+
+      ol.appendChild(li);
+    }
+    dayLi.appendChild(ol);
+    tl.appendChild(dayLi);
+  }
 }
 
 // --- Redaction -------------------------------------------------------------
@@ -798,7 +963,7 @@ function confirmRedaction(index, li) {
 
   sel.removeAllRanges();
   state.redactingIndex = null;
-  replaceRow(index, li);
+  afterRedactionChange(index, li);
 }
 
 /** Redact every occurrence of a typed phrase across the selected messages. */
@@ -821,6 +986,7 @@ function applyPhraseRedaction() {
     }
   }
   if (occurrences > 0) {
+    renderEvidenceMap();
     renderList(true);
     updateCharsetNotice();
     result.textContent = `Redacted ${occurrences} occurrence${occurrences === 1 ? '' : 's'} ` +
@@ -877,21 +1043,38 @@ function setStep(n, mode) {
 // Step 4 - generate
 // ---------------------------------------------------------------------------
 
+function setFieldError(inputId, errorId, message) {
+  const input = $(inputId);
+  input.classList.add('field-error');
+  input.setAttribute('aria-invalid', 'true');
+  const err = $(errorId);
+  err.textContent = message;
+  err.hidden = false;
+}
+
+function clearFieldError(inputId, errorId) {
+  const input = $(inputId);
+  input.classList.remove('field-error');
+  input.removeAttribute('aria-invalid');
+  $(errorId).hidden = true;
+}
+
 function validateCaseInfo() {
   const info = readCaseInfo();
-  const problems = [];
-  $('f-exhibit').classList.remove('field-error');
-  $('f-declarant').classList.remove('field-error');
+  clearFieldError('f-exhibit', 'f-exhibit-error');
+  clearFieldError('f-declarant', 'f-declarant-error');
+  let firstInvalid = null;
   if (!info.exhibitLabel) {
-    $('f-exhibit').classList.add('field-error');
-    problems.push('an exhibit label');
+    setFieldError('f-exhibit', 'f-exhibit-error', 'Enter an exhibit label, e.g. Exhibit A.');
+    firstInvalid = firstInvalid || 'f-exhibit';
   }
   if (!info.declarantName) {
-    $('f-declarant').classList.add('field-error');
-    problems.push('your name');
+    setFieldError('f-declarant', 'f-declarant-error', 'Enter your full name — you are the declarant.');
+    firstInvalid = firstInvalid || 'f-declarant';
   }
-  if (problems.length) {
-    showGenError(`Before generating, add ${problems.join(' and ')} in Step 3.`);
+  if (firstInvalid) {
+    showGenError('Before generating, complete the highlighted required fields in Step 3.');
+    $(firstInvalid).focus();
     return null;
   }
   return info;
@@ -943,6 +1126,7 @@ function buildDescription(info, exportMessages) {
 }
 
 function exhibitContext(info, exportMessages) {
+  const redactionSummary = buildRedactionSummary();
   return {
     messages: exportMessages,
     caseInfo: info,
@@ -950,11 +1134,51 @@ function exhibitContext(info, exportMessages) {
       name: s.name, sizeBytes: s.sizeBytes, hashHex: s.hashHex, hashedAt: s.hashedAt,
     })),
     description: buildDescription(info, exportMessages),
-    redactedCount: [...state.selection].filter((i) => state.redactions.has(i)).length,
+    redactedCount: redactionSummary.redactedMessageCount,
+    redactionSummary,
     exportDate: state.sources[0] && state.sources[0].file.lastModified
       ? new Date(state.sources[0].file.lastModified)
       : null,
   };
+}
+
+/**
+ * Truthful redaction/exclusion tallies for the declaration and the on-screen
+ * log. Only counts redactions on INCLUDED messages (redactions on excluded
+ * messages never reach the PDF). Deliberately reports counts only - the app
+ * never detects PII types, so it must not claim "phone numbers/emails hidden".
+ */
+function buildRedactionSummary() {
+  const redactedIdx = [...state.selection].filter((i) => state.redactions.has(i));
+  const redactionOperations = redactedIdx.reduce(
+    (n, i) => n + (state.redactions.get(i).count || 0), 0);
+  return {
+    redactedMessageCount: redactedIdx.length,
+    redactionOperations,
+    includedCount: state.selection.size,
+    excludedCount: Math.max(0, state.messages.length - state.selection.size),
+    totalInThread: state.messages.length,
+  };
+}
+
+/** Fill the Step 4 on-screen redaction log (mirrors the PDF declaration). */
+function renderRedactionSummary() {
+  const el = $('redaction-summary');
+  if (!el) return;
+  const s = buildRedactionSummary();
+  const parts = [];
+  if (s.redactedMessageCount > 0) {
+    parts.push(`${s.redactedMessageCount.toLocaleString('en-US')} included message${s.redactedMessageCount === 1 ? '' : 's'} ` +
+      `had content redacted (${s.redactionOperations.toLocaleString('en-US')} redaction${s.redactionOperations === 1 ? '' : 's'} in total).`);
+  }
+  if (s.excludedCount > 0) {
+    parts.push(`${s.includedCount.toLocaleString('en-US')} of ${s.totalInThread.toLocaleString('en-US')} messages are included; ` +
+      `${s.excludedCount.toLocaleString('en-US')} ${s.excludedCount === 1 ? 'was' : 'were'} excluded from the full thread.`);
+  }
+  el.textContent = parts.length
+    ? `Redaction log: ${parts.join(' ')}`
+    : `Redaction log: all ${s.totalInThread.toLocaleString('en-US')} messages included; no redactions applied.`;
+  el.hidden = false;
 }
 
 /**
@@ -1008,6 +1232,7 @@ async function buildExhibitDoc() {
 
   const exportMessages = buildExportMessages(info);
   updateCharsetNotice();
+  renderRedactionSummary();
 
   $('progress-wrap').hidden = false;
   const progress = $('gen-progress');
@@ -1098,6 +1323,7 @@ async function onDeclarationOnly() {
       sources: ctx.sources,
       messageCount: state.selection.size,
       redactedCount: ctx.redactedCount,
+      redactionSummary: ctx.redactionSummary,
       exportDate: ctx.exportDate,
       extendedFontB64,
     });

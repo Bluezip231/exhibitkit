@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Isaiah Shawver">
+  <title>How I Built ExhibitKit - Technical Overview</title>
+  <meta name="description" content="The technical overview of ExhibitKit: the stack (HTML, CSS, vanilla JavaScript, jsPDF, Web Crypto API), on-device AI (in-browser machine learning), the local-only privacy model, SHA-256 hash verification, and the UX for non-technical users.">
+  <link rel="canonical" href="https://exhibitkit.com/how-i-built-this.html">
+  <meta property="og:title" content="How I Built ExhibitKit - Technical Overview">
+  <meta property="og:description" content="The stack, on-device AI, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://exhibitkit.com/how-i-built-this.html">
+  <meta property="og:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:image:alt" content="ExhibitKit — turn message exports into court-ready PDF exhibits, privately in your browser.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How I Built ExhibitKit - Technical Overview">
+  <meta name="twitter:description" content="The stack, on-device AI, the local-only privacy model, SHA-256 hash verification, and the design decisions behind ExhibitKit.">
+  <meta name="twitter:image" content="https://exhibitkit.com/assets/og-image.png">
+  <meta property="og:site_name" content="ExhibitKit">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAFAF7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "How I Built ExhibitKit",
+    "description": "Technical overview of ExhibitKit: the stack, on-device AI (in-browser machine learning), the local-only privacy model, SHA-256 hash verification, the UX for non-technical users, and future plans.",
+    "author": { "@type": "Person", "name": "Isaiah Shawver", "sameAs": "https://x.com/ShawverTech" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "ExhibitKit",
+      "logo": { "@type": "ImageObject", "url": "https://exhibitkit.com/assets/favicon.svg" }
+    },
+    "url": "https://exhibitkit.com/how-i-built-this.html",
+    "mainEntityOfPage": "https://exhibitkit.com/how-i-built-this.html"
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>ExhibitKit</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="app.html">Builder</a>
+        <a href="verify.html">Verify a hash</a>
+        <a href="guide.html">Export guide</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>How I built ExhibitKit</h1>
+    <p>ExhibitKit turns a raw message export into a clean, court-ready PDF exhibit - entirely in your browser, with a SHA-256 integrity hash on every page. This page is the technical overview: what it's made of, the decisions behind it, and where it's headed. The whole project is open source on <a href="https://github.com/bluezip231/exhibitkit" rel="noopener">GitHub</a>.</p>
+
+    <h2>Built with</h2>
+    <ul class="feature-list">
+      <li><strong>HTML &amp; CSS.</strong> Plain, semantic markup and a small hand-written stylesheet - no UI framework.</li>
+      <li><strong>Vanilla JavaScript (ES modules).</strong> No build step, no bundler, no dependencies to install. Each page loads the modules it needs directly. That keeps the code auditable: what you read in the repo is exactly what runs.</li>
+      <li><strong>jsPDF.</strong> Generates the exhibit PDF - cover page, Bates-numbered messages, and the declaration - on your device. An optional embedded font is fetched only if your messages contain characters the standard PDF fonts can't render.</li>
+      <li><strong>Web Crypto API.</strong> The browser's built-in <code>crypto.subtle</code> computes the SHA-256 hash of your original file. No crypto library ships with the site.</li>
+      <li><strong>A service worker</strong> precaches the app so it keeps working offline after the first visit.</li>
+    </ul>
+
+    <h2>Security: your files stay local</h2>
+    <p>The core promise is that your messages never leave your device, and it isn't a policy you have to take on faith - it's enforced by how the site is built:</p>
+    <ul class="feature-list">
+      <li><strong>No backend.</strong> There is no server to receive a file, no account, and no database. The site is static files served from a CDN.</li>
+      <li><strong>All processing in the browser.</strong> Reading, hashing, parsing, redacting, and PDF generation all happen in page memory. A refresh wipes everything.</li>
+      <li><strong>A strict Content-Security-Policy.</strong> Each page ships its own CSP that whitelists only what it genuinely needs. Because there's no <code>connect-src</code> path back to our own origin, the browser itself would refuse to upload your messages even if the code tried. You can watch the network tab during a full session and confirm it.</li>
+    </ul>
+
+    <h2>Forensics: SHA-256 hash verification</h2>
+    <p>A digital exhibit is only as good as its tamper-evidence. When you load a file, ExhibitKit computes the SHA-256 hash of the original bytes and prints that fingerprint on the cover, in the declaration, and in the footer of every page. Anyone - opposing counsel, a clerk, a judge - can later drop the same source file into the <a href="verify.html">verify page</a> and confirm the hash matches, proving the exhibit was built from exactly that file and nothing was altered after the fact. The hashing is deterministic and runs the same in any modern browser.</p>
+
+    <h2>AI: on-device machine learning (the Review Lab)</h2>
+    <p>The most technically involved part of the project is the optional <a href="ai-lab.html">AI Review Lab</a> - and it runs real machine learning <em>entirely in your browser</em>, with no server and nothing uploaded.</p>
+    <ul class="feature-list">
+      <li><strong>A real embedding model.</strong> It loads <code>all-MiniLM-L6-v2</code>, a ~23&nbsp;MB quantized sentence-embedding model, through Transformers.js on top of the ONNX WebAssembly runtime - so the inference happens on the user's own device, not a backend.</li>
+      <li><strong>Semantic ranking, not keyword search.</strong> You describe a claim ("he agreed to pay half the rent"); the Lab turns your claim and every pasted message into 384-dimensional vectors, ranks the messages by cosine similarity, then groups them (likely related / possibly related / needs context) with deliberately hedged labels and a gap analysis.</li>
+      <li><strong>Private by construction.</strong> The model files download once from a public CDN, but your message text is never sent anywhere - the page's Content-Security-Policy doesn't include a route back to our own origin, so there is no upload path at all. The math runs in the WebAssembly sandbox on your machine.</li>
+    </ul>
+    <p><strong>And just as deliberately, the exhibit builder itself uses no AI.</strong> Court evidence should be deterministic and auditable, so categorizing, hashing, redacting and PDF generation are all plain, inspectable code. The Lab is a separate, optional <em>review aid</em> - it never touches the exhibit PDF and never judges the strength of a case. Knowing where machine learning belongs (helping a person find relevant messages) and where it doesn't (formatting sworn evidence) was one of the core design decisions of the whole project.</p>
+
+    <h2>UX: simple evidence organization for non-technical people</h2>
+    <p>Most people who need this are not engineers - they're self-represented litigants, fraud victims, or busy paralegals. So the builder is a plain four-step wizard, and a few touches do the heavy lifting:</p>
+    <ul class="feature-list">
+      <li><strong>One-click demo files</strong> for every supported format, so anyone can see the whole flow without exporting anything first.</li>
+      <li><strong>A deterministic Evidence Map</strong> that groups messages into plain categories (money, custody, agreements, dates, attachments) by keyword and lays out a factual timeline. It's keyword logic, not a model passing judgment - it never tells you your evidence is "strong," it just helps you find things.</li>
+      <li><strong>Genuine redaction.</strong> Redacted text is removed from the data before the PDF is built, not hidden under a black box that can be copied out - and the declaration logs how much was redacted or excluded.</li>
+      <li><strong>A plain-language declaration template</strong> with the case details filled in, ready to sign.</li>
+    </ul>
+
+    <h2>What's next</h2>
+    <p>The direction I'm most excited about is growing the on-device AI: larger or multilingual embedding models as browser ML matures, optional local summaries of a conversation, and smarter grouping - always running on the user's device, always a review aid rather than a judge of the case. On the builder side: more export formats and richer redaction tooling. The builder stays deterministic and AI-free by design.</p>
+
+    <p>Want the short version of who and why? See the <a href="about.html">about page</a>.</p>
+
+    <p><a class="btn btn-large" href="app.html">Build your exhibit</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
+      <p><a href="index.html">Home</a> · <a href="app.html">Builder</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
+      <p><a href="about.html">About</a> · <a href="how-i-built-this.html">How I built this</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
+    </div>
+  </footer>
+
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>

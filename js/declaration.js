@@ -16,6 +16,9 @@ const BLANK = '________';
  *   precedingPages: number|null, // pages before the declaration; null = blank
  *   sources: Array<{name: string, sizeBytes: number, hashHex: string}>,
  *   redactedCount: number,       // messages containing at least one redaction
+ *   redactionSummary: object|null, // {redactedMessageCount, redactionOperations,
+ *                                  //  excludedCount, totalInThread} - truthful
+ *                                  //  counts only; never PII categories
  *   exportDate: Date|null        // source file lastModified, if known
  * }} input
  * @returns {{title: string, intro: string, paragraphs: string[],
@@ -23,7 +26,7 @@ const BLANK = '________';
  */
 export function buildDeclaration(input) {
   const { caseInfo = {}, messageCount, precedingPages, sources = [],
-    redactedCount = 0, exportDate = null } = input;
+    redactedCount = 0, redactionSummary = null, exportDate = null } = input;
 
   const name = clean(caseInfo.declarantName) || BLANK;
   const role = clean(caseInfo.declarantRole) || BLANK;
@@ -74,11 +77,30 @@ export function buildDeclaration(input) {
     );
   }
 
-  if (redactedCount > 0) {
+  // Truthful redaction/exclusion disclosure. Reports counts only - the tool
+  // does manual redaction and never detects PII type, so it must not claim
+  // specific categories (e.g. "phone numbers" or "emails") were hidden.
+  const redaction = redactionSummary || { redactedMessageCount: redactedCount };
+  const redCount = redaction.redactedMessageCount || 0;
+
+  if (redCount > 0) {
+    const ops = redaction.redactionOperations || 0;
+    const opsText = ops > 0 ? `, comprising ${ops} redaction${ops === 1 ? '' : 's'},` : '';
     paragraphs.push(
-      `Portions of ${redactedCount} message${redactedCount === 1 ? '' : 's'} have been ` +
-      `redacted and are marked "[REDACTED]". No other alterations were made to ` +
+      `Portions of ${redCount} message${redCount === 1 ? '' : 's'}${opsText} have been ` +
+      `removed and are marked "[REDACTED]". No other alterations were made to ` +
       `message content.`
+    );
+  }
+
+  if (redaction.excludedCount > 0) {
+    const total = redaction.totalInThread != null
+      ? redaction.totalInThread
+      : messageCount + redaction.excludedCount;
+    paragraphs.push(
+      `This exhibit contains ${messageCount} of the ${total} messages in the source ` +
+      `export; the remaining ${redaction.excludedCount} ` +
+      `${redaction.excludedCount === 1 ? 'message was' : 'messages were'} not included.`
     );
   }
 

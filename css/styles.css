@@ -61,7 +61,7 @@ h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
 
 p { margin: 0.5rem 0 1rem; }
 
-a { color: var(--ink); text-decoration-color: var(--rule); text-underline-offset: 3px; }
+a { color: var(--ink); text-decoration-color: var(--muted); text-underline-offset: 3px; }
 a:hover { text-decoration-color: var(--ink); }
 
 code, .mono {
@@ -115,7 +115,7 @@ hr {
   font: inherit;
   color: var(--ink);
   text-decoration: underline;
-  text-decoration-color: var(--rule);
+  text-decoration-color: var(--muted);
   text-underline-offset: 3px;
   cursor: pointer;
 }
@@ -301,6 +301,14 @@ input[type="checkbox"] {
 .checkbox-row label { margin: 0; font-weight: 400; }
 
 .field-error { border-color: var(--seal) !important; }
+
+/* Inline, per-field validation message shown next to an invalid input. */
+.field-error-msg {
+  font-size: 0.82rem;
+  color: var(--seal);
+  font-weight: 500;
+  margin: 0.25rem 0 0;
+}
 
 /* --------------------------------------------------------------------------
    The Evidence Seal - signature component
@@ -842,10 +850,24 @@ details.faq summary {
   font-weight: 600;
   cursor: pointer;
   padding: 0.6rem 0;
-  list-style-position: outside;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  list-style: none;
+}
+
+details.faq summary::-webkit-details-marker { display: none; }
+
+details.faq summary::before {
+  content: "▶";
+  flex: none;
+  font-size: 0.72em;
+  color: currentColor;
+  transition: transform 150ms ease;
 }
 
 details.faq[open] summary { color: var(--seal); }
+details.faq[open] summary::before { transform: rotate(90deg); }
 
 details.faq p { margin: 0.25rem 0 1rem; color: var(--ink); }
 
@@ -1060,3 +1082,100 @@ kbd, .ui-name {
 }
 
 .ai-how { margin-top: 3rem; }
+
+/* --------------------------------------------------------------------------
+   Demo-file buttons (Step 1)
+   -------------------------------------------------------------------------- */
+
+.sample-row { margin: 1rem 0; }
+.sample-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* --------------------------------------------------------------------------
+   Evidence map (Step 2) - deterministic category chips + timeline
+   -------------------------------------------------------------------------- */
+
+.evidence-map {
+  margin: 0 0 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0 1rem;
+  background: var(--paper-raised);
+}
+.evidence-map > summary {
+  cursor: pointer;
+  padding: 0.8rem 0;
+  font-weight: 600;
+}
+.evidence-map[open] { padding-bottom: 1rem; }
+.evidence-map .hint { color: var(--muted); font-size: 0.85rem; margin: 0.3rem 0 0.9rem; }
+
+/* Category chips are <button>s that reuse .ai-count; reset button chrome and
+   add pressed (active filter) and disabled (zero matches) states. */
+button.ai-count {
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+}
+button.ai-count:disabled { opacity: 0.5; cursor: default; }
+.ai-count[aria-pressed="true"] {
+  border-color: var(--seal);
+  background: var(--seal-tint);
+  color: var(--seal);
+}
+
+.em-people {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--rule);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.em-people li { margin: 0.2rem 0; }
+
+.em-h { font-size: 1rem; margin: 0.8rem 0 0.4rem; }
+.em-timeline { list-style: none; margin: 0; padding: 0; }
+.em-day { margin: 0 0 0.8rem; }
+.em-day-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--seal);
+  margin: 0 0 0.3rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--rule);
+}
+.em-entries { list-style: none; margin: 0; padding: 0; }
+.em-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+}
+.em-entry-time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  min-width: 4.5rem;
+}
+.em-entry-sender { font-weight: 600; }
+.em-entry-snippet { flex: 1 1 12rem; min-width: 0; }
+.em-badge { flex: none; }
+
+/* On-screen redaction log (Step 4) mirrors the PDF declaration. */
+.redaction-log { font-size: 0.88rem; }
+
+/* --------------------------------------------------------------------------
+   Very small phones (below 480px): rein in display type and stack the
+   message-list filter toolbar so controls stay usable at ~320-414px.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 479px) {
+  h1 { font-size: 1.85rem; }
+  h2 { font-size: 1.3rem; }
+  .hero h1 { font-size: 2.05rem; }
+  .list-toolbar { grid-template-columns: 1fr; }
+  .dropzone { padding: 2rem 1rem; }
+}

@@ -1,0 +1,14 @@
+# Pin ExhibitKit's existing zero-build static deploy.
+#
+# package.json was added only for the headless CI test runner (Playwright).
+# Without this file, Netlify could detect package.json and start running an
+# install/build, breaking a deploy that has always been a plain copy of the
+# repo root (with the per-page CSP scheme in _headers).
+[build]
+  publish = "."
+  command = ""   # explicit no-op: there is no build step
+
+[build.environment]
+  # Skip Netlify's automatic Node dependency install so the deploy stays a pure
+  # static file copy. (Playwright is a dev/CI-only dependency.)
+  NETLIFY_SKIP_NODEJS_INSTALL = "true"

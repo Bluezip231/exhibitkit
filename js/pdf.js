@@ -230,7 +230,8 @@ const yieldToUi = () => new Promise((r) => setTimeout(r, 0));
  */
 export async function generateExhibitPdf(opts) {
   const { messages, caseInfo, sources, description,
-    redactedCount = 0, exportDate = null, extendedFontB64 = null, onProgress } = opts;
+    redactedCount = 0, redactionSummary = null, exportDate = null,
+    extendedFontB64 = null, onProgress } = opts;
 
   const doc = newDoc(extendedFontB64);
   const ctx = { caseInfo, ext: !!extendedFontB64 };
@@ -261,6 +262,7 @@ export async function generateExhibitPdf(opts) {
     precedingPages: messagePages,
     sources,
     redactedCount,
+    redactionSummary,
     exportDate,
   });
   doc.addPage();
@@ -274,7 +276,7 @@ export async function generateExhibitPdf(opts) {
 /** Generate a standalone declaration (no exhibit pages). */
 export function generateDeclarationPdf(opts) {
   const { caseInfo, sources, messageCount, redactedCount = 0,
-    exportDate = null, extendedFontB64 = null } = opts;
+    redactionSummary = null, exportDate = null, extendedFontB64 = null } = opts;
   const doc = newDoc(extendedFontB64);
   const ctx = { caseInfo, ext: !!extendedFontB64 };
   const decl = buildDeclaration({
@@ -283,6 +285,7 @@ export function generateDeclarationPdf(opts) {
     precedingPages: null,   // unknown - printed as a blank to fill in
     sources,
     redactedCount,
+    redactionSummary,
     exportDate,
   });
   drawPageHeader(doc, ctx);
