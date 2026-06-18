@@ -99,7 +99,7 @@ export function buildTimeline(messages, opts = {}) {
     const text = bodyOf(m);
     current.entries.push({
       index: m.index,
-      time: m.rawTimestamp || formatClock(d),
+      time: formatClock(d),
       sender: labelOf(m),
       snippet: snippet(text),
       categories: CATEGORIES.filter((c) => c.test(text)).map((c) => c.id),
@@ -112,8 +112,15 @@ export function buildTimeline(messages, opts = {}) {
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
+// Clean 12-hour clock time for the timeline. Every timeline entry has a real
+// Date, and the day header already shows the date, so we show only the time -
+// consistent across formats (WhatsApp/SMS/Meta raw stamps vary widely).
 function formatClock(d) {
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  let h = d.getHours();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h %= 12;
+  if (h === 0) h = 12;
+  return `${h}:${pad(d.getMinutes())} ${ampm}`;
 }
 
 /** Single-line, length-capped excerpt of a message body (no fabrication). */
