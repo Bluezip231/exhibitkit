@@ -47,6 +47,14 @@
  * so they are unit-testable on their own (see tests/ai-lab-test.html).
  */
 
+// Topic regexes are shared with the builder's deterministic Evidence Map. This
+// is a plain constant import; it does NOT pull in the Transformers runtime
+// (that only loads via the dynamic import() in loadEmbedder).
+import {
+  RE_MONEY, RE_AMOUNT, RE_REPAIR, RE_THREAT, RE_THREAT_REASON,
+  RE_AGREEMENT, RE_DATETIME,
+} from '../keywords.js';
+
 export const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
 // Vendored locally so no external JS executes in the same context as pasted
 // messages. The bundle fetches the ONNX wasm *binary* and the model weights
@@ -245,35 +253,10 @@ const SHORT_AGREEMENT = [
   'that works', 'i agree', 'no problem', 'sounds good', 'will do', 'cool',
 ];
 
-const RE_MONEY = /\$\s?\d|\b(pay|paid|pays|paying|owe|owed|owes|repay|repaid|rent|refund|loan|venmo|cashapp|zelle|paypal|dollars?|deposit)\b/i;
-// Narrower than RE_MONEY: requires evidence of an *actual amount*, not just a
-// money topic. Used in analyzeGaps() so vague money messages ("I'll pay you
-// back Friday", "rent due on 6/12", "payment at 5 Friday") still trigger the
-// "may not clearly show an amount" warning, while messages with an explicit
-// figure do not.
-// Alternatives (in order):
-//   \$\s?\d                          — currency prefix ($500, $1,200)
-//   \d...\s*(?:dollars?|bucks?)      — number + unit (500 dollars, 50 bucks)
-//   money-noun + connector + digit   — balance/total/amount/deposit/rent/
-//                                      loan/payment/refund followed immediately
-//                                      by is/was/=/:/of and a digit; the strict
-//                                      connector prevents "rent due on 6/12"
-//                                      or "payment at 5" from matching
-//   fraction phrase                  — half/full/all the rent|deposit|loan|...
-const RE_AMOUNT = /\$\s?\d|\b\d[\d,]*(?:\.\d{1,2})?\s*(?:dollars?|bucks?)|\b(?:balance|total|amount|deposit|rent|loan|payment|refund)\s*(?:is|was|=|:|of)\s*\d|(?:half|full|all)\s+(?:of\s+)?(?:the\s+)?(?:rent|deposit|loan|amount|balance|total|payment)\b/i;
-const RE_REPAIR = /\b(repair|repaired|repairs|fix|fixed|fixing|broken|break|leak|leaking|landlord|maintenance|plumber|heater|furnace|mold|mould|appliance|sink|toilet|outage)\b/i;
-// Broad threat set used only to test for *presence* in the gap analysis (per
-// spec): bare "stop"/"hurt"/"scared" are too ambiguous to assert as a reason.
-const RE_THREAT = /\b(threat|threats|threaten|threatened|threatening|hurt|kill|harm|scared|afraid|harass|harassment|stop|leave me alone|or else|regret|watch out)\b/i;
-// Stricter set used for the per-message "may mention threat" reason label, to
-// avoid alarming false positives on benign words like "stop by" or "bus stop".
-// "regret" matches only when used as a threat ("will regret", "you'll regret",
-// "make you regret") — bare "I regret" / "I regret that" does not match.
-const RE_THREAT_REASON = /\b(threat|threats|threaten|threatened|threatening|kill|harm|harass|harassment|leave me alone|or else|watch out)\b|(?:will|gonna)\s+regret\b|you'?ll\s+regret\b|(?:make|made)\s+\w+\s+regret\b/i;
-const RE_AGREEMENT = /\b(agree|agreed|promise|promised|deal|confirm|confirmed|i'?ll|i will|we will|will pay|pay you back|sounds good)\b/i;
-// Note: am/pm only counts when attached to a number (e.g. "3pm", "11 a.m.") so
-// the ordinary verb "am" in "I am here" is not mistaken for a time.
-const RE_DATETIME = /\b\d{1,2}:\d{2}\b|\b\d{1,2}[/.\-]\d{1,2}\b|\b\d{1,2}\s?[ap]\.?m\.?\b|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|tonight|noon|midnight)\b/i;
+// RE_MONEY, RE_AMOUNT, RE_REPAIR, RE_THREAT, RE_THREAT_REASON, RE_AGREEMENT and
+// RE_DATETIME now live in ../keywords.js (shared with the builder Evidence Map)
+// and are imported at the top of this file. The CLAIM_* sets below stay here:
+// they are specific to claim-relevance matching in the AI Lab.
 
 const CLAIM_MONEY = /\b(pay|money|rent|owe|owed|refund|loan|repay|paid|owes)\b/i;
 const CLAIM_THREAT = /\b(threat|threats|threaten|threatened|scared|hurt|harass|harassment|afraid)\b/i;

@@ -16,6 +16,7 @@ import {
 import { buildDeclaration } from '../js/declaration.js';
 import { redactPhrase, redactRange } from '../js/redact.js';
 import { makeSampleFile } from '../js/sample.js';
+import { categorize, buildTimeline } from '../js/evidence-map-lite.js';
 import { parseWhatsApp as parseWhatsAppSample } from '../js/parsers/whatsapp.js';
 import {
   WHATSAPP_IOS, WHATSAPP_ANDROID, SMS_XML, META_JSON_1, META_JSON_2,
@@ -375,6 +376,116 @@ test('declaration: multiple sources list every file and hash', () => {
   const hashPara = d.paragraphs.find((p) => p.includes('SHA-256'));
   assert(hashPara.includes('aa'.repeat(32)) && hashPara.includes('bb'.repeat(32)),
     'both hashes on certification page');
+});
+
+// ---------------------------------------------------------------------------
+// Evidence map (deterministic categories + timeline)
+// ---------------------------------------------------------------------------
+
+test('keywords: categorize tags money/datetime/custody/agreement/attachment/threat', () => {
+  const msgs = [
+    { index: 0, body: 'I can pay $300 now', sender: 'A', isSystem: false },
+    { index: 1, body: 'Pick Emma up from school Friday at 3pm', sender: 'B', isSystem: false },
+    { index: 2, body: 'Sounds good, I agree to that', sender: 'A', isSystem: false },
+    { index: 3, body: '<Media omitted>', sender: 'B', isSystem: false },
+    { index: 4, body: 'I will harass you', sender: 'A', isSystem: false },
+    { index: 5, body: 'just a normal hello', sender: 'B', isSystem: false },
+  ];
+  const { byCategory, counts } = categorize(msgs);
+  assert(byCategory.money.has(0), 'money tag on $300');
+  assert(byCategory.datetime.has(1), 'datetime tag on Friday/3pm');
+  assert(byCategory.custody.has(1), 'custody tag on school/pickup');
+  assert(byCategory.agreements.has(2), 'agreement tag');
+  assert(byCategory.attachments.has(3), 'attachment tag on media marker');
+  assert(byCategory.threats.has(4), 'threat tag on harass');
+  assert(!byCategory.money.has(5) && !byCategory.threats.has(5), 'plain message untagged');
+  assertEqual(counts.total, 6);
+});
+
+test('keywords: strict threat avoids benign "stop"; custody scopes "support"', () => {
+  const msgs = [
+    { index: 0, body: 'I will stop by the bus stop later', sender: 'A', isSystem: false },
+    { index: 1, body: 'I support that idea', sender: 'A', isSystem: false },
+    { index: 2, body: 'the child support is late', sender: 'A', isSystem: false },
+  ];
+  const { byCategory } = categorize(msgs);
+  assert(!byCategory.threats.has(0), '"stop by"/"bus stop" is not a threat');
+  assert(!byCategory.custody.has(1), 'bare "support" is not custody');
+  assert(byCategory.custody.has(2), '"child support" is custody');
+});
+
+test('evidence-map-lite: people involved counts distinct non-system senders', () => {
+  const msgs = [
+    { index: 0, body: 'a', sender: 'Jane', isSystem: false },
+    { index: 1, body: 'b', sender: 'John', isSystem: false },
+    { index: 2, body: 'c', sender: 'Jane', isSystem: false },
+    { index: 3, body: 'sys', sender: '', isSystem: true },
+  ];
+  const { people, counts } = categorize(msgs);
+  assertEqual(counts.people, 2, 'two distinct people, system excluded');
+  const jane = people.find((p) => p.label === 'Jane');
+  assertEqual(jane.count, 2);
+});
+
+test('evidence-map-lite: buildTimeline groups by day, chronological, drops null timestamps', () => {
+  const msgs = [
+    { index: 0, body: 'later same day', sender: 'A', isSystem: false, timestamp: new Date(2026, 4, 3, 18, 0), rawTimestamp: '6:00 PM' },
+    { index: 1, body: 'no timestamp here', sender: 'B', isSystem: false, timestamp: null, rawTimestamp: '' },
+    { index: 2, body: 'earlier day', sender: 'A', isSystem: false, timestamp: new Date(2026, 4, 1, 9, 0), rawTimestamp: '9:00 AM' },
+    { index: 3, body: 'same day morning', sender: 'B', isSystem: false, timestamp: new Date(2026, 4, 3, 8, 0), rawTimestamp: '8:00 AM' },
+  ];
+  const { days, withoutTimestamp, datedCount } = buildTimeline(msgs);
+  assertEqual(withoutTimestamp, 1, 'one message had no timestamp');
+  assertEqual(datedCount, 3);
+  assertEqual(days.length, 2, 'two distinct days');
+  assert(days[0].dayKey < days[1].dayKey, 'days in chronological order');
+  assertEqual(days[1].entries.length, 2, 'second day has two entries');
+  assertEqual(days[1].entries[0].snippet, 'same day morning', 'earliest entry of the day first');
+  assertEqual(days[1].entries[0].sender, 'B');
+});
+
+test('evidence-map-lite: snippet is single-line and length-capped', () => {
+  const msgs = [
+    { index: 0, body: 'line one\nline two', sender: 'A', isSystem: false, timestamp: new Date(2026, 4, 1, 9, 0), rawTimestamp: '9' },
+    { index: 1, body: 'x'.repeat(200), sender: 'A', isSystem: false, timestamp: new Date(2026, 4, 1, 10, 0), rawTimestamp: '10' },
+  ];
+  const { days } = buildTimeline(msgs);
+  const entries = days[0].entries;
+  assert(!entries[0].snippet.includes('\n'), 'newlines collapsed to a single line');
+  assert(entries[1].snippet.length <= 80, 'snippet capped at 80 chars');
+});
+
+// ---------------------------------------------------------------------------
+// Declaration redaction log (truthful counts only)
+// ---------------------------------------------------------------------------
+
+test('declaration: truthful redaction log from redactionSummary, no PII categories', () => {
+  const d = buildDeclaration({
+    caseInfo: { declarantName: 'Jane Smith', declarantRole: 'Petitioner' },
+    messageCount: 17,
+    precedingPages: 3,
+    sources: [{ name: 'chat.txt', sizeBytes: 100, hashHex: 'ab'.repeat(32) }],
+    exportDate: null,
+    redactionSummary: { redactedMessageCount: 2, redactionOperations: 3, excludedCount: 2, totalInThread: 19 },
+  });
+  const text = d.paragraphs.join('\n');
+  assert(/Portions of 2 messages, comprising 3 redactions, have been removed/.test(text), 'redaction message + operation counts');
+  assert(text.includes('[REDACTED]'), 'mentions the redaction marker');
+  assert(/contains 17 of the 19 messages/.test(text), 'exclusion sentence with totals');
+  assert(!/phone|email/i.test(text), 'never names PII categories');
+});
+
+test('declaration: redactionSummary singular wording; no paragraphs when nothing redacted/excluded', () => {
+  const base = {
+    caseInfo: { declarantName: 'J' }, messageCount: 5, precedingPages: 1,
+    sources: [{ name: 'c.txt', sizeBytes: 1, hashHex: 'aa'.repeat(32) }], exportDate: null,
+  };
+  const one = buildDeclaration({ ...base, redactionSummary: { redactedMessageCount: 1, redactionOperations: 1, excludedCount: 1, totalInThread: 6 } });
+  const t1 = one.paragraphs.join('\n');
+  assert(/Portions of 1 message, comprising 1 redaction, have been removed/.test(t1), 'singular message/redaction');
+  assert(/the remaining 1 message was not included/.test(t1), 'singular excluded wording');
+  const none = buildDeclaration({ ...base, redactionSummary: { redactedMessageCount: 0, redactionOperations: 0, excludedCount: 0, totalInThread: 5 } });
+  assertEqual(none.paragraphs.length, 5, 'no redaction or exclusion paragraphs added');
 });
 
 // ---------------------------------------------------------------------------

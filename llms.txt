@@ -39,6 +39,7 @@ Nothing is stored: no localStorage, sessionStorage, IndexedDB, or cookies for me
 - [Document a Scam](https://exhibitkit.com/scam-evidence.html): Guide for preserving and documenting messages from a scammer for police reports, IC3/FTC fraud complaints, and bank disputes
 - [Privacy Policy](https://exhibitkit.com/privacy.html): Plain-English disclosure — what is and is not collected, including the AI Lab's CDN downloads
 - [About](https://exhibitkit.com/about.html): What ExhibitKit is, who built it, and the design philosophy
+- [How I Built This](https://exhibitkit.com/how-i-built-this.html): Technical overview — the stack (HTML, CSS, vanilla JS, jsPDF, Web Crypto API), the local-only privacy model, SHA-256 hash verification, UX decisions, and future plans
 - [Contact](https://exhibitkit.com/contact.html): Contact form (plain Netlify form, no JavaScript required)
 - [Support](https://exhibitkit.com/support.html): Free ways to help + optional donation
 

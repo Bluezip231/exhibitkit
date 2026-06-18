@@ -17,6 +17,7 @@ const PAGES = [
   'support.html',
   'scam-evidence.html',
   'ai-lab.html',
+  'how-i-built-this.html',
   '404.html',
 ];
 

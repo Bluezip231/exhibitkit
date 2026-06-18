@@ -43,6 +43,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://exhibitkit.com/how-i-built-this.html</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://exhibitkit.com/contact.html</loc>
     <lastmod>2026-06-15</lastmod>
     <changefreq>yearly</changefreq>

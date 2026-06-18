@@ -85,7 +85,15 @@
       </div>
       <input type="file" id="file-input" class="visually-hidden" accept=".txt,.csv,.xml,.json" multiple aria-hidden="true" tabindex="-1">
 
-      <p class="dz-alt">No export handy yet? <button type="button" class="btn-link" id="sample-btn">Try the whole flow with a fictional sample chat</button> - it runs through the exact same local pipeline.</p>
+      <div id="sample-row" class="sample-row">
+        <p class="dz-alt">No export handy yet? Try the whole flow with a fictional sample - each runs through the exact same local pipeline:</p>
+        <div class="sample-btns">
+          <button type="button" class="btn btn-secondary btn-small" id="sample-btn" data-sample="whatsapp">Try WhatsApp demo</button>
+          <button type="button" class="btn btn-secondary btn-small" data-sample="meta">Try Messenger demo</button>
+          <button type="button" class="btn btn-secondary btn-small" data-sample="smsxml">Try SMS demo</button>
+          <button type="button" class="btn btn-secondary btn-small" data-sample="csv">Try CSV demo</button>
+        </div>
+      </div>
 
       <div id="upload-error" class="notice notice-error" role="alert" hidden></div>
       <div id="upload-warning" class="notice" hidden></div>
@@ -140,6 +148,16 @@
     <section class="wizard-section" id="step-select" aria-labelledby="h-step2" hidden>
       <h2 id="h-step2"><span class="step-num">Step 2</span> Select &amp; redact</h2>
       <p>Every message is included by default - untick any you want to leave out. To hide sensitive text (an account number, a child's name), use <strong>Redact</strong>: the text is genuinely removed before the PDF is created, not covered with a black box, so it cannot be recovered from the file.</p>
+
+      <details class="evidence-map" id="evidence-map" hidden>
+        <summary>Evidence map - category counts &amp; timeline</summary>
+        <p class="hint">These are deterministic <strong>keyword matches</strong> to help you find messages - not legal conclusions, and they may include false positives, so always read the message itself. Click a category to filter the list below.</p>
+        <div class="ai-overview em-chips" id="em-chips" role="group" aria-label="Evidence categories"></div>
+        <ul class="em-people" id="em-people" hidden></ul>
+        <h3 class="em-h">Timeline</h3>
+        <p class="hint" id="em-timeline-note" hidden></p>
+        <ol class="em-timeline" id="em-timeline"></ol>
+      </details>
 
       <div class="list-toolbar">
         <input type="search" id="filter-search" class="span-2" placeholder="Search messages…" aria-label="Search messages">
@@ -236,6 +254,7 @@
         </div>
       </div>
       <div id="gen-error" class="notice notice-error" role="alert" hidden></div>
+      <p id="redaction-summary" class="notice redaction-log" aria-live="polite" hidden></p>
 
       <div class="progress-wrap" id="progress-wrap" hidden>
         <progress id="gen-progress" max="100" value="0"></progress>
@@ -256,7 +275,7 @@
     <div class="wrap">
       <p>ExhibitKit formats records and computes integrity hashes. It is not a law firm and does not provide legal advice.</p>
       <p><a href="index.html">Home</a> · <a href="verify.html">Verify a hash</a> · <a href="guide.html">Export guide</a> · <a href="scam-evidence.html">Scam evidence</a></p>
-      <p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
+      <p><a href="about.html">About</a> · <a href="how-i-built-this.html">How I built this</a> · <a href="contact.html">Contact</a> · <a href="support.html">Support</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/bluezip231/exhibitkit">GitHub</a></p>
       <p>Built by Isaiah Shawver, maker of <a href="https://scamkit.com">ScamKit.com</a> - free scam &amp; link checking, and recovery steps if you've been hit.</p>
     </div>
   </footer>
