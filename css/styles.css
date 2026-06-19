@@ -859,6 +859,23 @@ progress {
 }
 .bridge-card h3 { margin-top: 0; }
 
+/* Homepage desktop polish - mobile (<700/800px) is untouched */
+@media (min-width: 800px) {
+  .hero { gap: 3.5rem; padding: 3.5rem 0 4rem; }
+  .hero h1 { font-size: 3.1rem; }
+
+  /* Two long bullet lists fill the width instead of one tall column */
+  .home-sections .feature-list { columns: 2; column-gap: 3rem; }
+  .home-sections .feature-list li { break-inside: avoid; margin: 0 0 0.7rem; }
+}
+
+@media (min-width: 700px) {
+  /* Hairline rule + rhythm between sections - fits the court-filing aesthetic */
+  .home-sections > section { border-top: 1px solid var(--rule); margin-top: 2.75rem; padding-top: 2.25rem; }
+  .home-sections > section:first-child { border-top: none; margin-top: 1.5rem; padding-top: 0; }
+  .home-sections > section > h2 { margin-top: 0; } /* avoid doubling the section padding */
+}
+
 /* FAQ */
 details.faq {
   border-bottom: 1px solid var(--rule);
