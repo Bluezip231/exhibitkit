@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://exhibitkit.com/sitemap.xml
+Sitemap: https://exhibitkit.me/sitemap.xml
 
 # AI crawler context file (llms.txt standard)
-# https://exhibitkit.com/llms.txt
+# https://exhibitkit.me/llms.txt

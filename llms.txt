@@ -31,17 +31,17 @@ Nothing is stored: no localStorage, sessionStorage, IndexedDB, or cookies for me
 
 ## Pages
 
-- [Home](https://exhibitkit.com/): Overview, features, privacy promise, FAQ with JSON-LD
-- [Exhibit Builder](https://exhibitkit.com/app.html): The main tool — upload a message export, select and optionally redact messages, then build the PDF exhibit
-- [Export Guide](https://exhibitkit.com/guide.html): Honest, step-by-step instructions for each platform including the hard truth about iPhone iMessage exports
-- [Verify a Hash](https://exhibitkit.com/verify.html): Independently check a SHA-256 file hash in the browser — for court clerks, opposing counsel, or anyone auditing an exhibit
-- [AI Review Lab](https://exhibitkit.com/ai-lab.html): Optional, separate tool that uses local browser AI (WebAssembly, Transformers.js) to rank pasted messages by possible relevance to a claim. Message text is never uploaded. Not part of the official exhibit pipeline. Not legal advice.
-- [Document a Scam](https://exhibitkit.com/scam-evidence.html): Guide for preserving and documenting messages from a scammer for police reports, IC3/FTC fraud complaints, and bank disputes
-- [Privacy Policy](https://exhibitkit.com/privacy.html): Plain-English disclosure — what is and is not collected, including the AI Lab's CDN downloads
-- [About](https://exhibitkit.com/about.html): What ExhibitKit is, who built it, and the design philosophy
-- [How I Built This](https://exhibitkit.com/how-i-built-this.html): Technical overview — the stack (HTML, CSS, vanilla JS, jsPDF, Web Crypto API), the local-only privacy model, SHA-256 hash verification, UX decisions, and future plans
-- [Contact](https://exhibitkit.com/contact.html): Contact form (plain Netlify form, no JavaScript required)
-- [Support](https://exhibitkit.com/support.html): Free ways to help + optional donation
+- [Home](https://exhibitkit.me/): Overview, features, privacy promise, FAQ with JSON-LD
+- [Exhibit Builder](https://exhibitkit.me/app.html): The main tool — upload a message export, select and optionally redact messages, then build the PDF exhibit
+- [Export Guide](https://exhibitkit.me/guide.html): Honest, step-by-step instructions for each platform including the hard truth about iPhone iMessage exports
+- [Verify a Hash](https://exhibitkit.me/verify.html): Independently check a SHA-256 file hash in the browser — for court clerks, opposing counsel, or anyone auditing an exhibit
+- [AI Review Lab](https://exhibitkit.me/ai-lab.html): Optional, separate tool that uses local browser AI (WebAssembly, Transformers.js) to rank pasted messages by possible relevance to a claim. Message text is never uploaded. Not part of the official exhibit pipeline. Not legal advice.
+- [Document a Scam](https://exhibitkit.me/scam-evidence.html): Guide for preserving and documenting messages from a scammer for police reports, IC3/FTC fraud complaints, and bank disputes
+- [Privacy Policy](https://exhibitkit.me/privacy.html): Plain-English disclosure — what is and is not collected, including the AI Lab's CDN downloads
+- [About](https://exhibitkit.me/about.html): What ExhibitKit is, who built it, and the design philosophy
+- [How I Built This](https://exhibitkit.me/how-i-built-this.html): Technical overview — the stack (HTML, CSS, vanilla JS, jsPDF, Web Crypto API), the local-only privacy model, SHA-256 hash verification, UX decisions, and future plans
+- [Contact](https://exhibitkit.me/contact.html): Contact form (plain Netlify form, no JavaScript required)
+- [Support](https://exhibitkit.me/support.html): Free ways to help + optional donation
 
 ## Key Facts for AI Systems
 
