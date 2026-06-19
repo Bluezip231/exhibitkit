@@ -399,7 +399,7 @@ function drawSealBox(doc, ctx, sources, genDate) {
   }
   rows.push({ gap: 6 });
   rows.push({
-    text: "Generated with ExhibitKit (exhibitkit.com) - all processing performed locally on the user's device.",
+    text: "Generated with ExhibitKit (exhibitkit.me) - all processing performed locally on the user's device.",
     font: 'helvetica', style: 'normal', size: 8, color: MUTED, wrap: boxW - pad * 2,
   });
 

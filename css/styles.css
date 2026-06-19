@@ -37,6 +37,8 @@ html { scroll-behavior: smooth; }
   }
 }
 
+html, body { overflow-x: hidden; }
+
 body {
   margin: 0;
   background: var(--paper);
@@ -67,6 +69,8 @@ a:hover { text-decoration-color: var(--ink); }
 code, .mono {
   font-family: var(--font-mono);
   font-size: 0.9em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 hr {
@@ -271,6 +275,7 @@ input[type="search"],
 select,
 textarea {
   width: 100%;
+  max-width: 100%;
   font-family: var(--font-body);
   font-size: 0.95rem;
   color: var(--ink);
@@ -279,6 +284,8 @@ textarea {
   border-radius: 4px;
   padding: 0.55rem 0.7rem;
 }
+
+textarea { resize: vertical; }
 
 input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--ink);
